@@ -14,8 +14,8 @@ Key concepts
 
 Usage
 -----
-    python es_patch.py --model resnet18 --patch-size 40
-    python es_patch.py --image my.jpg --generations 100
+    python bcos_es_patch.py --model resnet18 --patch-size 40
+    python bcos_es_patch.py --image my.jpg --generations 100
 """
 
 import sys
@@ -29,11 +29,18 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-# ── Make sure bcos is importable ────────────────────────────────────────────
-SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(SCRIPT_DIR))
+from attack_utils import canonicalize_norm, project_perturbation
 
-sys.path.insert(0, "/kaggle/working/B-cos-v2")
+# ── Make sure bcos is importable ────────────────────────────────────────────
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = PROJECT_ROOT
+RESULT_DIR = SCRIPT_DIR / "artifacts" / "outputs" / "result"
+sys.path.insert(0, str(SCRIPT_DIR))
+LOCAL_BCOS_DIR = SCRIPT_DIR / "B-cos-v2"
+if LOCAL_BCOS_DIR.is_dir():
+    sys.path.insert(0, str(LOCAL_BCOS_DIR))
+elif Path("/kaggle/working/B-cos-v2").is_dir():
+    sys.path.insert(0, "/kaggle/working/B-cos-v2")
 
 import bcos
 from bcos.common import explanation_mode, gradient_to_image
@@ -64,6 +71,7 @@ def extract_attribution(
     with explanation_mode(model):
         result = model.explain(inp, idx=target_class)
     return {
+        "dynamic_linear_weights": result["dynamic_linear_weights"],
         "contribution_map": result["contribution_map"],
         "explanation": result["explanation"],
         "prediction": result["prediction"],
@@ -80,6 +88,8 @@ class PatchEvolutionStrategyOptimizer:
         self,
         param_shape: Tuple[int, ...],
         init_pos: Tuple[float, float],
+        epsilon: float,
+        norm: str,
         population_size: int = 50,
         elite_fraction: float = 0.2,
         sigma: float = 0.05,
@@ -100,16 +110,17 @@ class PatchEvolutionStrategyOptimizer:
         self.lr = learning_rate
         self.lr_pos = lr_pos
         self.device = device
+        self.epsilon = epsilon
+        self.norm = canonicalize_norm(norm)
         
-        # Initialize patch with zeros
-        self.patch = torch.zeros(param_shape, device=device)
+        # Search directly in additive perturbation space, then project to the budget.
+        self.perturbation = torch.zeros(param_shape, device=device)
         self.pos = torch.tensor(init_pos, device=device, dtype=torch.float32)
         
     def ask(self) -> Tuple[Tensor, Tensor]:
         noise_patch = torch.randn(self.population_size, *self.param_shape, device=self.device)
-        candidates_patch = self.patch.unsqueeze(0) + self.sigma * noise_patch
-        # Clamp patch values to valid [-1, 1] additive range
-        candidates_patch = candidates_patch.clamp(-1.0, 1.0)
+        candidates_patch = self.perturbation.unsqueeze(0) + self.sigma * noise_patch
+        candidates_patch = project_perturbation(candidates_patch, self.epsilon, self.norm)
         
         noise_pos = torch.randn(self.population_size, 2, device=self.device)
         candidates_pos = self.pos.unsqueeze(0) + self.sigma_pos * noise_pos
@@ -132,8 +143,8 @@ class PatchEvolutionStrategyOptimizer:
             weights_patch = weights_patch.unsqueeze(-1)
             
         new_patch = (weights_patch * elite_patch).sum(dim=0)
-        self.patch = (1 - self.lr) * self.patch + self.lr * new_patch
-        self.patch = self.patch.clamp(-1.0, 1.0)
+        self.perturbation = (1 - self.lr) * self.perturbation + self.lr * new_patch
+        self.perturbation = project_perturbation(self.perturbation, self.epsilon, self.norm)
         
         # Update pos
         elite_pos = candidates_pos[elite_idx]
@@ -145,10 +156,10 @@ class PatchEvolutionStrategyOptimizer:
         self.sigma = max(self.sigma * self.sigma_decay, self.sigma_min)
         self.sigma_pos = max(self.sigma_pos * self.sigma_decay, self.sigma_min)
         
-        return self.patch, self.pos
+        return self.perturbation, self.pos
         
     def get_params(self) -> Tuple[Tensor, Tensor]:
-        return self.patch.clone(), self.pos.clone()
+        return self.perturbation.clone(), self.pos.clone()
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -203,12 +214,7 @@ def compute_scores(
             
             cw_loss = max_other_logits - outputs[:, target_class]
             
-            # L2 penalty
-            l2_penalty = batch_patch.view(B, -1).pow(2).sum(dim=1)
-            batch_scores = cw_loss - 0.05 * l2_penalty
-            
-            scores.append(batch_scores)
-            # scores.append(-outputs[:, target_class])
+            scores.append(cw_loss)
             
     return torch.cat(scores)
 
@@ -224,6 +230,8 @@ def run_patch_attack(
     patch_size: int, 
     init_pos_y: int, 
     init_pos_x: int,
+    epsilon: float = 0.3,
+    norm: str = "linf",
     generations: int = 50, 
     population_size: int = 50,
     elite_fraction: float = 0.2, 
@@ -248,6 +256,8 @@ def run_patch_attack(
     es = PatchEvolutionStrategyOptimizer(
         param_shape=(1, 3, patch_size, patch_size),
         init_pos=init_pos,
+        epsilon=epsilon,
+        norm=norm,
         population_size=population_size, elite_fraction=elite_fraction,
         sigma=sigma, sigma_pos=sigma_pos, sigma_decay=sigma_decay, sigma_min=sigma_min,
         learning_rate=learning_rate, lr_pos=lr_pos, device=device
@@ -334,7 +344,14 @@ def visualize_patch_results(
     
     ax3 = fig.add_subplot(gs[0, 2])
     # Show the patch scaled up (shifted to [0, 1] for visualization)
-    patch_vis = (patch.squeeze(0).permute(1, 2, 0).cpu().numpy() + 1.0) / 2.0
+    patch_for_vis = patch
+    while patch_for_vis.dim() > 3 and patch_for_vis.shape[0] == 1:
+        patch_for_vis = patch_for_vis.squeeze(0)
+    if patch_for_vis.dim() != 3 or patch_for_vis.shape[0] != 3:
+        raise ValueError(
+            f"Expected patch with leading singleton dims and 3 channels, got shape {tuple(patch.shape)}"
+        )
+    patch_vis = (patch_for_vis.permute(1, 2, 0).cpu().numpy() + 1.0) / 2.0
     ax3.imshow(patch_vis)
     ax3.set_xticks([]); ax3.set_yticks([])
     style_ax(ax3, "Adversarial Patch (zoom)")
@@ -431,6 +448,13 @@ def main():
     parser.add_argument("--sigma", type=float, default=0.05, help="Initial noise std dev (default: 0.05)")
     parser.add_argument("--sigma-decay", type=float, default=0.99, help="Sigma decay per generation (default: 0.99)")
     parser.add_argument("--lr", type=float, default=1.0, help="ES learning rate (default: 1.0)")
+    parser.add_argument(
+        "--epsilon",
+        type=float,
+        default=0.3,
+        help="Perturbation budget. For l0, values <= 1 are treated as a fraction of patch coefficients.",
+    )
+    parser.add_argument("--norm", type=str, default="linf", help="Perturbation norm budget: l0, l2, or linf")
     
     parser.add_argument("--device", type=str, default="auto", help="Device: cpu, cuda, auto")
     parser.add_argument("--save", type=str, default="patch_attack_results.png", help="Path to save result figure")
@@ -447,6 +471,7 @@ def main():
     print(f"  Device       : {device}")
     print(f"  Model        : {args.model}")
     print(f"  Patch size   : {args.patch_size}x{args.patch_size}")
+    print(f"  Budget       : {canonicalize_norm(args.norm)} <= {args.epsilon:g}")
     
     # ── 1. Load model ──
     print("\n▸ Loading B-cos model …")
@@ -458,12 +483,13 @@ def main():
     x_rgb, image_path = load_rgb_image(args.image, device=device)
     
     image_name = os.path.splitext(os.path.basename(image_path))[0]
-    out_dir = image_name
+    out_dir = RESULT_DIR / image_name
     os.makedirs(out_dir, exist_ok=True)
     
     import torchvision.utils as vutils
-    vutils.save_image(x_rgb, os.path.join(out_dir, "before.png"))
-    print(f"  ✓ Saved original image to {os.path.join(out_dir, 'before.png')}")
+    before_path = out_dir / "before.png"
+    vutils.save_image(x_rgb, str(before_path))
+    print(f"  ✓ Saved original image to {before_path}")
     
     # Determine patch position
     if args.pos_y == -1 or args.pos_x == -1:
@@ -497,6 +523,7 @@ def main():
     final_patch, final_pos_y, final_pos_x, history = run_patch_attack(
         model, x_rgb, target_class, 
         patch_size=args.patch_size, init_pos_y=pos_y, init_pos_x=pos_x,
+        epsilon=args.epsilon, norm=args.norm,
         generations=args.generations, population_size=args.population,
         elite_fraction=args.elite_fraction, sigma=args.sigma,
         sigma_decay=args.sigma_decay, learning_rate=args.lr,
@@ -505,11 +532,12 @@ def main():
     print(f"  ✓ Final Patch position (Y, X) : ({final_pos_y}, {final_pos_x})")
 
     # ── 5. Evaluate Perturbed ──
-    final_patch = final_patch.clamp(-0.3, 0.3)
+    final_patch = project_perturbation(final_patch, args.epsilon, args.norm)
     x_pert_rgb = apply_patch(x_rgb, final_patch, final_pos_y, final_pos_x)
     
-    vutils.save_image(x_pert_rgb, os.path.join(out_dir, "after.png"))
-    print(f"  ✓ Saved perturbed image to {os.path.join(out_dir, 'after.png')}")
+    after_path = out_dir / "after.png"
+    vutils.save_image(x_pert_rgb, str(after_path))
+    print(f"  ✓ Saved perturbed image to {after_path}")
     
     x_6ch_pert = to_bcos_input(x_pert_rgb)
     with torch.no_grad():
@@ -538,7 +566,7 @@ def main():
     # ── 6. Visualise ──
     print("\n▸ Generating visualization …")
     
-    save_plot_path = args.save if args.save != "patch_attack_results.png" else os.path.join(out_dir, "patch_attack_results.png")
+    save_plot_path = args.save if args.save != "patch_attack_results.png" else str(out_dir / "patch_attack_results.png")
     
     visualize_patch_results(
         x_orig_rgb=x_rgb,

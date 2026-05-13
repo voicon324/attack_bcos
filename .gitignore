@@ -1,0 +1,59 @@
+# Local editor and Codex state
+.codex
+kaggle.json
+*.ovpn
+.vscode/
+.idea/
+.virtual_documents/
+.history/
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+pyvenv.cfg
+
+# Test, coverage, and notebook caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ipynb_checkpoints/
+
+# Logs and temporary files
+*.log
+*.zip
+run.txt
+*.tmp
+tmp/
+cache/
+
+# Experiment outputs and generated artifacts
+artifacts/
+result/
+result_circle/
+result_hieu/
+results/
+es_attack/
+outputs/
+runs/
+wandb/
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*_results*.csv
+used_images_*.csv
+!data/used_images_*.csv
+
+# External datasets and downloaded model weights
+imagenet/
+weights/

@@ -7,17 +7,18 @@ Runs adversarial patch attacks using Evolution Strategies across:
   - Multiple patch sizes (128, 64, 32)
   - 100 ImageNet validation images
 
-Optimal patch position is found via 2D prefix-sum (DP) on the
-B-cos contribution/explanation map (maximizing total attribution
-inside the patch window). ES then optimizes only the perturbation.
+Optimal patch position is found via 2D prefix-sum (DP) on two B-cos
+signals: the contribution map and the target-class explanation map.
+Each ES candidate is scored at both positions and keeps the better one,
+while ES still optimizes only the perturbation.
 
 Usage
 -----
     # Full experiment
-    python es_patch_experiment.py
+    python bcos_es_patch_sweep.py
 
     # Quick test
-    python es_patch_experiment.py --num-images 2 --models resnet18 --patch-sizes 32 --generations 10
+    python bcos_es_patch_sweep.py --num-images 2 --models resnet18 --patch-sizes 32 --generations 10
 """
 
 import sys
@@ -34,10 +35,18 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 
+from attack_utils import canonicalize_norm, project_perturbation
+
 # ── Make sure bcos is importable ────────────────────────────────────────────
-SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = PROJECT_ROOT
+RESULT_DIR = SCRIPT_DIR / "artifacts" / "outputs" / "result"
 sys.path.insert(0, str(SCRIPT_DIR))
-sys.path.insert(0, "/kaggle/working/B-cos-v2")
+LOCAL_BCOS_DIR = SCRIPT_DIR / "B-cos-v2"
+if LOCAL_BCOS_DIR.is_dir():
+    sys.path.insert(0, str(LOCAL_BCOS_DIR))
+elif Path("/kaggle/working/B-cos-v2").is_dir():
+    sys.path.insert(0, "/kaggle/working/B-cos-v2")
 
 import bcos
 from bcos.common import explanation_mode
@@ -111,55 +120,17 @@ def collect_image_paths(root: str, num_images: int, seed: int = 42) -> List[str]
 # 2. OPTIMAL PATCH POSITION VIA 2D PREFIX-SUM
 # ═════════════════════════════════════════════════════════════════════════════
 
-def find_optimal_patch_position(
-    model: torch.nn.Module,
-    x_rgb: Tensor,
-    target_class: int,
+def find_best_patch_position_from_importance_map(
+    importance_map: np.ndarray,
     patch_size: int,
 ) -> Tuple[int, int]:
-    """
-    Find the patch position that covers the region with maximum total
-    explanation attribution, using 2D prefix-sum for O(H*W) search.
-
-    Parameters
-    ----------
-    model : B-cos model
-    x_rgb : [1, 3, H, W] RGB image tensor
-    target_class : class to explain
-    patch_size : side length of the square patch
-
-    Returns
-    -------
-    (pos_y, pos_x) : top-left corner of the optimal patch position
-    """
-    _, _, H, W = x_rgb.shape
-    S = min(patch_size, H, W)  # Clamp patch size to image dims
-
-    # Get contribution map from B-cos explanation
-    x_6ch = to_bcos_input(x_rgb)
-    inp = x_6ch.detach().clone().requires_grad_(True)
-    with explanation_mode(model):
-        result = model.explain(inp, idx=target_class)
-
-    # contribution_map shape: [1, 1, H, W] or similar
-    cmap = result["contribution_map"]
-    if cmap.dim() == 4:
-        cmap = cmap.squeeze(0)  # [1, H, W]
-    if cmap.dim() == 3:
-        cmap = cmap.squeeze(0)  # [H, W]
-
-    # Use absolute contribution values — we want to place patch where
-    # the model relies most on the input
-    attr = cmap.abs().detach().cpu().numpy().astype(np.float64)
-
-    # Build 2D prefix sum using numpy cumsum (vectorized)
+    attr = np.abs(importance_map).astype(np.float64)
+    H, W = attr.shape
+    S = min(patch_size, H, W)
     prefix = np.zeros((H + 1, W + 1), dtype=np.float64)
     prefix[1:, 1:] = np.cumsum(np.cumsum(attr, axis=0), axis=1)
-
-    # Find S×S window with maximum sum
     best_sum = -1.0
     best_y, best_x = 0, 0
-
     for y in range(H - S + 1):
         for x in range(W - S + 1):
             window_sum = (
@@ -175,6 +146,48 @@ def find_optimal_patch_position(
     return best_y, best_x
 
 
+def extract_guidance_maps(
+    model: torch.nn.Module,
+    x_rgb: Tensor,
+    target_class: int,
+) -> Tuple[np.ndarray, np.ndarray]:
+    x_6ch = to_bcos_input(x_rgb)
+    inp = x_6ch.detach().clone().requires_grad_(True)
+    with explanation_mode(model):
+        result = model.explain(inp, idx=target_class)
+
+    cmap = result["contribution_map"]
+    if cmap.dim() == 4:
+        cmap = cmap.squeeze(0)
+    if cmap.dim() == 3:
+        cmap = cmap.squeeze(0)
+    contribution_map = cmap.detach().cpu().numpy()
+
+    explanation = result["explanation"]
+    if explanation.shape[-1] >= 4:
+        explanation_map = explanation[..., 3]
+    else:
+        explanation_map = np.abs(explanation).sum(axis=-1)
+    return contribution_map, explanation_map
+
+
+def find_optimal_patch_positions(
+    model: torch.nn.Module,
+    x_rgb: Tensor,
+    target_class: int,
+    patch_size: int,
+) -> List[Tuple[int, int]]:
+    contribution_map, explanation_map = extract_guidance_maps(
+        model,
+        x_rgb,
+        target_class,
+    )
+    return [
+        find_best_patch_position_from_importance_map(contribution_map, patch_size),
+        find_best_patch_position_from_importance_map(explanation_map, patch_size),
+    ]
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # 3. SIMPLIFIED ES OPTIMIZER (FIXED POSITION)
 # ═════════════════════════════════════════════════════════════════════════════
@@ -185,6 +198,8 @@ class FixedPosPatchES:
     def __init__(
         self,
         param_shape: Tuple[int, ...],
+        epsilon: float,
+        norm: str,
         population_size: int = 50,
         elite_fraction: float = 0.2,
         sigma: float = 0.05,
@@ -201,12 +216,14 @@ class FixedPosPatchES:
         self.sigma_min = sigma_min
         self.lr = learning_rate
         self.device = device
-        self.patch = torch.zeros(param_shape, device=device)
+        self.epsilon = epsilon
+        self.norm = canonicalize_norm(norm)
+        self.perturbation = torch.zeros(param_shape, device=device)
 
     def ask(self) -> Tensor:
         noise = torch.randn(self.population_size, *self.param_shape, device=self.device)
-        candidates = self.patch.unsqueeze(0) + self.sigma * noise
-        return candidates.clamp(-1.0, 1.0)
+        candidates = self.perturbation.unsqueeze(0) + self.sigma * noise
+        return project_perturbation(candidates, self.epsilon, self.norm)
 
     def tell(self, candidates: Tensor, scores: Tensor) -> Tensor:
         _, elite_idx = scores.topk(self.elite_size)
@@ -220,63 +237,63 @@ class FixedPosPatchES:
             w = w.unsqueeze(-1)
 
         new_patch = (w * elite).sum(dim=0)
-        self.patch = (1 - self.lr) * self.patch + self.lr * new_patch
-        self.patch = self.patch.clamp(-1.0, 1.0)
+        self.perturbation = (1 - self.lr) * self.perturbation + self.lr * new_patch
+        self.perturbation = project_perturbation(self.perturbation, self.epsilon, self.norm)
         self.sigma = max(self.sigma * self.sigma_decay, self.sigma_min)
-        return self.patch
+        return self.perturbation
 
     def get_patch(self) -> Tensor:
-        return self.patch.clone()
+        return self.perturbation.clone()
 
 
 # ═════════════════════════════════════════════════════════════════════════════
 # 4. SCORE COMPUTATION (BATCH, FIXED POSITION)
 # ═════════════════════════════════════════════════════════════════════════════
 
-def compute_scores_fixed(
+def compute_scores_fixed_multi_position(
     model: torch.nn.Module,
     x_rgb: Tensor,
     candidates: Tensor,
-    pos_y: int,
-    pos_x: int,
+    patch_positions: List[Tuple[int, int]],
     target_class: int,
-) -> Tensor:
+) -> Tuple[Tensor, Tensor]:
     """
-    Evaluate candidate patches at a fixed position.
-    Returns CW margin loss: max(other_logits) - logit[target_class].
+    Evaluate candidate patches at multiple fixed positions.
+    Returns the best CW margin loss per candidate and the winning position index.
     """
     N = candidates.shape[0]
-    batch_size = min(N, 50)  # Adjust for GPU memory
+    position_count = len(patch_positions)
+    batch_size = min(N, max(1, 50 // max(position_count, 1)))
     scores_list = []
-    _, _, H, W = x_rgb.shape
-    # candidates shape: [N, 1, 3, S, S]
-    ps = candidates.shape[-1]  # patch spatial size
+    pos_idx_list = []
+    ps = candidates.shape[-1]
 
     with torch.no_grad():
         for i in range(0, N, batch_size):
             batch = candidates[i:i+batch_size]
             B = batch.shape[0]
-            x_rep = x_rgb.expand(B, -1, -1, -1).clone()
-
-            # batch shape: [B, 1, 3, S, S] -> squeeze to [B, 3, S, S]
+            x_rep = x_rgb.expand(B * position_count, -1, -1, -1).clone()
             patch_vals = batch.squeeze(1)
-            # Apply all patches at once
-            x_rep[:, :, pos_y:pos_y+ps, pos_x:pos_x+ps] = torch.clamp(
-                x_rep[:, :, pos_y:pos_y+ps, pos_x:pos_x+ps] + patch_vals, 0.0, 1.0
-            )
+            for pos_idx, (pos_y, pos_x) in enumerate(patch_positions):
+                lo = pos_idx * B
+                hi = lo + B
+                x_rep[lo:hi, :, pos_y:pos_y+ps, pos_x:pos_x+ps] = torch.clamp(
+                    x_rep[lo:hi, :, pos_y:pos_y+ps, pos_x:pos_x+ps] + patch_vals, 0.0, 1.0
+                )
 
             x_6ch = to_bcos_input(x_rep)
             outputs = model(x_6ch)
 
-            # CW margin loss
             out_clone = outputs.clone()
             out_clone[:, target_class] = -float('inf')
             max_other = out_clone.max(dim=1)[0]
-            cw = max_other - outputs[:, target_class]
+            cw = (max_other - outputs[:, target_class]).view(position_count, B)
+            best_scores, best_pos_idx = cw.max(dim=0)
 
-            scores_list.append(cw)
+            scores_list.append(best_scores)
+            pos_idx_list.append(best_pos_idx.to(dtype=torch.long))
 
-    return torch.cat(scores_list)
+    return torch.cat(scores_list), torch.cat(pos_idx_list)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -288,10 +305,11 @@ def run_single_attack(
     x_rgb: Tensor,
     target_class: int,
     patch_size: int,
-    pos_y: int,
-    pos_x: int,
+    patch_positions: List[Tuple[int, int]],
     generations: int = 200,
     population_size: int = 50,
+    epsilon: float = 0.3,
+    norm: str = "linf",
     sigma: float = 0.05,
     sigma_decay: float = 0.99,
     device: torch.device = torch.device('cpu'),
@@ -302,20 +320,49 @@ def run_single_attack(
 
     es = FixedPosPatchES(
         param_shape=(1, 3, S, S),
+        epsilon=epsilon,
+        norm=norm,
         population_size=population_size,
         sigma=sigma,
         sigma_decay=sigma_decay,
         device=device,
     )
 
+    best_patch_overall: Optional[Tensor] = None
+    best_score_overall = -float("inf")
+    best_pos_overall = patch_positions[0]
+
     for gen in range(generations):
         cands = es.ask()
-        scores = compute_scores_fixed(model, x_rgb, cands, pos_y, pos_x, target_class)
+        scores, best_pos_idx = compute_scores_fixed_multi_position(
+            model,
+            x_rgb,
+            cands,
+            patch_positions,
+            target_class,
+        )
         es.tell(cands, scores)
+        best_idx = scores.argmax().item()
+        best_score = scores[best_idx].item()
+        if best_score > best_score_overall:
+            best_score_overall = best_score
+            best_patch_overall = cands[best_idx].clone()
+            best_pos_overall = patch_positions[int(best_pos_idx[best_idx].item())]
 
-    # Final evaluation
-    final_patch = es.get_patch().clamp(-0.3, 0.3)
-    x_pert = apply_patch(x_rgb, final_patch, pos_y, pos_x)
+    final_patch = project_perturbation(es.get_patch(), epsilon, norm)
+    if best_patch_overall is not None:
+        final_patch = project_perturbation(best_patch_overall, epsilon, norm)
+    _, final_pos_idx = compute_scores_fixed_multi_position(
+        model,
+        x_rgb,
+        final_patch.unsqueeze(0),
+        patch_positions,
+        target_class,
+    )
+    final_pos_y, final_pos_x = patch_positions[int(final_pos_idx[0].item())]
+    if best_patch_overall is not None:
+        final_pos_y, final_pos_x = best_pos_overall
+    x_pert = apply_patch(x_rgb, final_patch, final_pos_y, final_pos_x)
 
     with torch.no_grad():
         out_pert = model(to_bcos_input(x_pert))
@@ -328,8 +375,8 @@ def run_single_attack(
         "pert_logit_target": logit_pert_target,
         "pert_logit_pred": logit_pert_pred,
         "attack_success": pred_class_pert != target_class,
-        "patch_pos_y": pos_y,
-        "patch_pos_x": pos_x,
+        "patch_pos_y": final_pos_y,
+        "patch_pos_x": final_pos_x,
         "x_pert": x_pert,
     }
 
@@ -347,10 +394,17 @@ def main():
                         help="Patch sizes (default: 128 64 32)")
     parser.add_argument("--generations", type=int, default=200)
     parser.add_argument("--population", type=int, default=50)
+    parser.add_argument(
+        "--epsilon",
+        type=float,
+        default=0.3,
+        help="Perturbation budget. For l0, values <= 1 are treated as a fraction of patch coefficients.",
+    )
+    parser.add_argument("--norm", type=str, default="linf", help="Perturbation norm budget: l0, l2, or linf")
     parser.add_argument("--sigma", type=float, default=0.05)
     parser.add_argument("--sigma-decay", type=float, default=0.99)
     parser.add_argument("--device", type=str, default="auto")
-    parser.add_argument("--output", type=str, default="es_patch_results.csv")
+    parser.add_argument("--output", type=str, default=str(RESULT_DIR / "es_patch_results.csv"))
     parser.add_argument("--save-images", action="store_true", help="Save perturbed images")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
@@ -367,6 +421,11 @@ def main():
 
     model_names = args.models if args.models else ALL_BCOS_MODELS
     patch_sizes = args.patch_sizes if args.patch_sizes else DEFAULT_PATCH_SIZES
+    norm_name = canonicalize_norm(args.norm)
+    epsilon_key = f"{args.epsilon:g}"
+    output_path = Path(args.output).resolve()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    perturbed_images_dir = output_path.parent / "perturbed_images"
 
     print("=" * 72)
     print("  Batch ES Patch Attack Experiment on B-cos Models")
@@ -377,7 +436,8 @@ def main():
     print(f"  Images       : {args.num_images}")
     print(f"  Generations  : {args.generations}")
     print(f"  Population   : {args.population}")
-    print(f"  Output CSV   : {args.output}")
+    print(f"  Budget       : {norm_name} <= {epsilon_key}")
+    print(f"  Output CSV   : {output_path}")
     print(f"  Save images  : {args.save_images}")
     print()
 
@@ -386,12 +446,13 @@ def main():
     image_paths = collect_image_paths(IMAGENET_ROOT, args.num_images, seed=args.seed)
 
     if args.save_images:
-        os.makedirs("perturbed_images", exist_ok=True)
+        perturbed_images_dir.mkdir(parents=True, exist_ok=True)
         import torchvision.utils as vutils
 
     # Prepare CSV
     csv_fields = [
         "image_path", "model_name", "patch_size",
+        "norm", "epsilon",
         "orig_class", "orig_logit",
         "pert_class", "pert_logit_target", "pert_logit_pred",
         "attack_success", "patch_pos_y", "patch_pos_x", "time_seconds",
@@ -399,17 +460,19 @@ def main():
 
     # Check if CSV already exists to support resume
     completed = set()
-    if os.path.exists(args.output):
-        with open(args.output, "r") as f:
+    if output_path.exists():
+        with output_path.open("r") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                key = (row["image_path"], row["model_name"], row["patch_size"])
+                row_norm = canonicalize_norm(row.get("norm") or "linf")
+                row_epsilon = row.get("epsilon") or "0.3"
+                key = (row["image_path"], row["model_name"], row["patch_size"], row_norm, row_epsilon)
                 completed.add(key)
         print(f"  Found existing CSV with {len(completed)} completed entries (resuming)")
-        csv_file = open(args.output, "a", newline="")
+        csv_file = output_path.open("a", newline="")
         writer = csv.DictWriter(csv_file, fieldnames=csv_fields)
     else:
-        csv_file = open(args.output, "w", newline="")
+        csv_file = output_path.open("w", newline="")
         writer = csv.DictWriter(csv_file, fieldnames=csv_fields)
         writer.writeheader()
 
@@ -453,7 +516,7 @@ def main():
 
             for ps in patch_sizes:
                 experiment_count += 1
-                key = (img_path, model_name, str(ps))
+                key = (img_path, model_name, str(ps), norm_name, epsilon_key)
                 if key in completed:
                     continue
 
@@ -481,6 +544,8 @@ def main():
                         pos_y, pos_x,
                         generations=args.generations,
                         population_size=args.population,
+                        epsilon=args.epsilon,
+                        norm=norm_name,
                         sigma=args.sigma,
                         sigma_decay=args.sigma_decay,
                         device=device,
@@ -499,6 +564,8 @@ def main():
                     "image_path": img_path,
                     "model_name": model_name,
                     "patch_size": ps,
+                    "norm": norm_name,
+                    "epsilon": epsilon_key,
                     "orig_class": orig_class,
                     "orig_logit": f"{orig_logit:.4f}",
                     "pert_class": result["pert_class"],
@@ -514,7 +581,7 @@ def main():
 
                 if args.save_images and result["attack_success"]:
                     img_name = os.path.basename(img_path).split('.')[0]
-                    save_path = os.path.join("perturbed_images", f"{img_name}_{model_name}_p{ps}.png")
+                    save_path = perturbed_images_dir / f"{img_name}_{model_name}_p{ps}.png"
                     vutils.save_image(result["x_pert"], save_path)
 
                 status = "✓" if result["attack_success"] else "✗"
@@ -541,16 +608,16 @@ def main():
     print(f"  Total experiments : {total_done}")
     print(f"  Attack successes  : {total_success}")
     print(f"  Success rate      : {total_success/max(1,total_done)*100:.1f}%")
-    print(f"  Results saved to  : {args.output}")
+    print(f"  Results saved to  : {output_path}")
 
     # Print per-model × per-patch-size summary
-    if os.path.exists(args.output):
+    if output_path.exists():
         print(f"\n  {'Model':<25s} {'PatchSize':>10s} {'Success':>8s} {'Total':>6s} {'Rate':>8s}")
         print(f"  {'-'*25} {'-'*10} {'-'*8} {'-'*6} {'-'*8}")
 
         import collections
         stats = collections.defaultdict(lambda: {"success": 0, "total": 0})
-        with open(args.output, "r") as f:
+        with output_path.open("r") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 key = (row["model_name"], row["patch_size"])
