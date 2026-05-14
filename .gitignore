@@ -57,3 +57,4 @@ used_images_*.csv
 # External datasets and downloaded model weights
 imagenet/
 weights/
+vpnuser03-macos-windows.ovpn
