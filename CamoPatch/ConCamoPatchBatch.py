@@ -26,6 +26,7 @@ from ConCamoPatch import (
     describe_attack_model,
     parse_linf,
     pytorch_switch,
+    resolve_bcos_guide_model,
     resolve_fixed_bcos_position,
 )
 from ImageNetModels import ImageNetModel
@@ -433,6 +434,10 @@ def main() -> None:
     print(f"Attacking model: {attack_model_name}")
     print("Algorithm: strict per-image (1+1)-ES; batch dimension is images, not candidates.")
 
+    bcos_guide = None
+    if args.init_bcos_position or args.fixed_bcos_position:
+        bcos_guide = resolve_bcos_guide_model(model, args.model, args.device)
+
     all_rows: List[Dict[str, object]] = []
     for start in range(0, len(items), args.image_batch_size):
         chunk = items[start:start + args.image_batch_size]
@@ -465,6 +470,7 @@ def main() -> None:
                     args.s,
                     args.model,
                     args.device,
+                    guide=bcos_guide,
                 )
                 print(
                     f"  image {indices[idx]:05d}: B-cos init loc=({int(loc[0])},{int(loc[1])}) "

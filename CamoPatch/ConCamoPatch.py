@@ -29,7 +29,13 @@ def describe_attack_model(model_idx, model_source):
     return model_names.get((model_source, model_idx), f"{model_source}_model_{model_idx}")
 
 
-def resolve_fixed_bcos_position(model, x_rgb_chw, true_label, patch_size, model_idx, device):
+def resolve_bcos_guide_model(model, model_idx, device):
+    if getattr(model, "model_source", None) == "bcos":
+        return model
+    return ImageNetModel(model_idx, device=device, model_source="bcos")
+
+
+def resolve_fixed_bcos_position(model, x_rgb_chw, true_label, patch_size, model_idx, device, guide=None):
     repo_root = Path(__file__).resolve().parents[1]
     attacks_dir = repo_root / "attacks"
     for path in (repo_root, attacks_dir):
@@ -44,9 +50,8 @@ def resolve_fixed_bcos_position(model, x_rgb_chw, true_label, patch_size, model_
         to_bcos_input,
     )
 
-    guide = model
-    if getattr(model, "model_source", None) != "bcos":
-        guide = ImageNetModel(model_idx, device=device, model_source="bcos")
+    if guide is None:
+        guide = resolve_bcos_guide_model(model, model_idx, device)
 
     guide_model = guide.model
     guide_device = guide.device
