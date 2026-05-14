@@ -13,3 +13,4 @@ sshfs "$REMOTE" "$MOUNT_POINT" \
   -o ServerAliveCountMax=3
 
 echo "Mounted. Unmount with: fusermount -u $MOUNT_POINT"
+CmK26pFG
