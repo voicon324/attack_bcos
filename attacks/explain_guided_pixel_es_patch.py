@@ -774,7 +774,8 @@ def run_explain_guided_attack(
             print(
                 f"  Gen {gen + 1:3d}/{generations} | "
                 f"Target Logit: {best_logit:7.3f} | "
-                f"Score: {best_score:7.3f} | sigma: {es.sigma:.4f}"
+                f"Score: {best_score:7.3f} | sigma: {es.sigma:.4f}",
+                flush=True,
             )
 
     final_patch = es.get_patch()
@@ -929,14 +930,16 @@ def run_explain_guided_attack_batch(
                 print(
                     f"  Gen {gen + 1:3d}/{generations} | "
                     f"Target Logit: {best_logits[0].item():7.3f} | "
-                    f"Score: {best_scores[0].item():7.3f} | sigma: {es.sigma:.4f}"
+                    f"Score: {best_scores[0].item():7.3f} | sigma: {es.sigma:.4f}",
+                    flush=True,
                 )
             else:
                 print(
                     f"  Gen {gen + 1:3d}/{generations} | "
                     f"Mean Target Logit: {best_logits.mean().item():7.3f} | "
                     f"Best Target Logit: {best_logits.min().item():7.3f} | "
-                    f"Mean Score: {best_scores.mean().item():7.3f} | sigma: {es.sigma:.4f}"
+                    f"Mean Score: {best_scores.mean().item():7.3f} | sigma: {es.sigma:.4f}",
+                    flush=True,
                 )
 
     return best_patches_overall, best_pos_y_overall, best_pos_x_overall, histories
@@ -1379,6 +1382,7 @@ def main() -> None:
         print("  Guide only   : B-cos explain chooses position; ES optimize/eval run on torchvision model")
     print(f"  Image batch  : {args.image_batch_size}")
     print(f"  Score batch  : {'auto' if args.score_batch_size == 0 else args.score_batch_size}")
+    print(f"  Verbose gen  : {args.verbose_generations}")
     print(f"  Save images  : {args.save_images}")
     print(f"  Save figure  : {args.save_figure}")
     print(f"  Output root  : {output_root}")
