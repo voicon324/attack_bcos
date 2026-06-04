@@ -311,12 +311,33 @@ def find_best_patch_position_from_contribution_margin(
     return int(best_y), int(best_x)
 
 
+def find_best_patch_position_from_contribution_map(
+    contribution_map: Tensor,
+    patch_size: int,
+) -> Tuple[int, int]:
+    contribution = squeeze_contribution_map(contribution_map).detach().cpu().numpy().astype(np.float64)
+    contribution_sums = patch_window_sums(contribution, patch_size)
+    best_flat = int(np.argmax(contribution_sums))
+    best_y, best_x = np.unravel_index(best_flat, contribution_sums.shape)
+    return int(best_y), int(best_x)
+
+
 def find_best_patch_position(
     contribution_map: Tensor,
     patch_size: int,
 ) -> Tuple[int, int]:
     cmap = squeeze_contribution_map(contribution_map)
     return find_best_patch_position_from_importance_map(cmap, patch_size)
+
+
+def find_random_patch_position(
+    contribution_map: Tensor,
+    patch_size: int,
+) -> Tuple[int, int]:
+    cmap = squeeze_contribution_map(contribution_map)
+    h, w = cmap.shape
+    s = min(patch_size, h, w)
+    return int(np.random.randint(0, h - s + 1)), int(np.random.randint(0, w - s + 1))
 
 
 def resolve_patch_positions(
@@ -326,15 +347,22 @@ def resolve_patch_positions(
     pos_y: int,
     pos_x: int,
     use_explain_position: bool,
+    position_rule: str,
 ) -> List[Tuple[int, int]]:
-    if use_explain_position:
+    if not use_explain_position:
+        primary_pos = (max(0, pos_y), max(0, pos_x))
+    elif position_rule == "margin":
         primary_pos = find_best_patch_position_from_contribution_margin(
             primary_contribution_map,
             secondary_contribution_map,
             patch_size,
         )
+    elif position_rule == "top1":
+        primary_pos = find_best_patch_position_from_contribution_map(primary_contribution_map, patch_size)
+    elif position_rule == "random":
+        primary_pos = find_random_patch_position(primary_contribution_map, patch_size)
     else:
-        primary_pos = (max(0, pos_y), max(0, pos_x))
+        raise ValueError(f"Unsupported position rule: {position_rule}")
     # secondary_pos = find_best_patch_position(
     #     secondary_contribution_map,
     #     patch_size,
@@ -673,6 +701,7 @@ def run_explain_guided_attack(
     pos_y: int,
     pos_x: int,
     use_explain_position: bool,
+    position_rule: str,
     score_batch_size: int,
     channels_last: bool,
     attack_original_model: bool,
@@ -687,6 +716,7 @@ def run_explain_guided_attack(
         pos_y=pos_y,
         pos_x=pos_x,
         use_explain_position=use_explain_position,
+        position_rule=position_rule,
     )
 
     es = ExplainGuidedPatchES(
@@ -783,6 +813,7 @@ def run_explain_guided_attack_batch(
     pos_y: int,
     pos_x: int,
     use_explain_position: bool,
+    position_rule: str,
     score_batch_size: int,
     channels_last: bool,
     attack_original_model: bool,
@@ -811,6 +842,7 @@ def run_explain_guided_attack_batch(
                 pos_y=pos_y,
                 pos_x=pos_x,
                 use_explain_position=use_explain_position,
+                position_rule=position_rule,
             )
         )
 
@@ -1013,6 +1045,7 @@ def process_single_image(
         pos_y=0,
         pos_x=0,
         use_explain_position=True,
+        position_rule=args.position_rule,
         score_batch_size=args.score_batch_size,
         channels_last=args.channels_last,
         attack_original_model=args.attack_original_model,
@@ -1078,6 +1111,7 @@ def process_single_image(
         "perturbed_pred_logit": logit_pert_pred,
         "patch_pos_y": final_pos_y,
         "patch_pos_x": final_pos_x,
+        "position_rule": args.position_rule,
         "norm": canonicalize_norm(args.norm),
         "epsilon": f"{args.epsilon:g}",
         "success": int(pred_class_pert != target_class),
@@ -1146,6 +1180,7 @@ def process_image_batch(
         pos_y=0,
         pos_x=0,
         use_explain_position=True,
+        position_rule=args.position_rule,
         score_batch_size=args.score_batch_size,
         channels_last=args.channels_last,
         attack_original_model=args.attack_original_model,
@@ -1228,6 +1263,7 @@ def process_image_batch(
                 "perturbed_pred_logit": pert_logit_pred,
                 "patch_pos_y": final_pos_y[batch_idx - 1],
                 "patch_pos_x": final_pos_x[batch_idx - 1],
+                "position_rule": args.position_rule,
                 "norm": canonicalize_norm(args.norm),
                 "epsilon": f"{args.epsilon:g}",
                 "success": int(pred_class_pert != target_class),
@@ -1283,6 +1319,15 @@ def main() -> None:
         action="store_true",
         help="Use B-cos only to choose the patch position, then optimize/evaluate on the corresponding torchvision model.",
     )
+    parser.add_argument(
+        "--position-rule",
+        choices=("margin", "top1", "random"),
+        default="margin",
+        help=(
+            "Patch position rule: margin = max patch sum(top1 contribution - top2 contribution), "
+            "top1 = max patch sum(top1 contribution), random = random top-left patch position."
+        ),
+    )
     parser.add_argument("--save-images", action="store_true", help="Save before/after PNGs for each image")
     parser.add_argument("--save-figure", action="store_true", help="Render and save the explanation figure for each image")
     parser.add_argument("--verbose-generations", action="store_true", help="Print one log line per ES generation")
@@ -1324,7 +1369,12 @@ def main() -> None:
     print(f"  Patch size   : {args.patch_size}x{args.patch_size}")
     print(f"  Budget       : {canonicalize_norm(args.norm)} <= {args.epsilon:g}")
     print(f"  Attack mode  : {'torchvision-original' if args.attack_original_model else 'bcos'}")
-    print("  Position rule: max patch sum(top1 contribution - top2 contribution)")
+    position_rule_text = {
+        "margin": "max patch sum(top1 contribution - top2 contribution)",
+        "top1": "max patch sum(top1 contribution)",
+        "random": "random top-left patch position",
+    }[args.position_rule]
+    print(f"  Position rule: {args.position_rule} ({position_rule_text})")
     if args.attack_original_model:
         print("  Guide only   : B-cos explain chooses position; ES optimize/eval run on torchvision model")
     print(f"  Image batch  : {args.image_batch_size}")
@@ -1389,6 +1439,7 @@ def main() -> None:
             "perturbed_pred_logit",
             "patch_pos_y",
             "patch_pos_x",
+            "position_rule",
             "norm",
             "epsilon",
             "success",
