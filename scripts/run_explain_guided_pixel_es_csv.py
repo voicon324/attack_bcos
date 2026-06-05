@@ -114,8 +114,8 @@ def parse_args() -> tuple[argparse.Namespace, List[str]]:
     parser.add_argument(
         "--position-rule",
         default="margin",
-        choices=("margin", "top1", "dynamic-margin", "dynamic", "random"),
-        help="Patch position rule: current margin rule, top1, 6-channel dynamic-weight variants, or random.",
+        choices=("margin", "top1", "dynamic-margin", "dynamic", "random", "gradcam"),
+        help="Patch position rule: current margin rule, top1, 6-channel dynamic-weight variants, random, or gradcam.",
     )
     parser.add_argument(
         "--image-batch-size",

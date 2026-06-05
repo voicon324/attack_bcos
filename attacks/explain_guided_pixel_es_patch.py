@@ -64,6 +64,7 @@ TORCHVISION_MODEL_MAP = {
     "convnext_base": "convnext_base",
     "vgg11_bnu": "vgg11_bn",
 }
+POSITION_RULES = ("margin", "top1", "dynamic-margin", "dynamic", "random", "gradcam")
 
 
 @dataclass(frozen=True)
@@ -322,6 +323,33 @@ def find_best_patch_position_from_contribution_map(
     return int(best_y), int(best_x)
 
 
+def extract_bcos_gradcam_map(
+    guide_model: torch.nn.Module,
+    x_bcos: Tensor,
+    target_class: int,
+) -> Tensor:
+    try:
+        features = guide_model.get_feature_extractor()
+        classifier = guide_model.get_classifier()
+    except AttributeError as exc:
+        raise AttributeError(
+            "Grad-CAM position rule requires a B-cos model with "
+            "get_feature_extractor() and get_classifier()."
+        ) from exc
+
+    with torch.no_grad():
+        feature_map = features(x_bcos)
+
+    with torch.enable_grad():
+        var_features = feature_map.detach().requires_grad_(True)
+        logits = F.adaptive_avg_pool2d(classifier(var_features), 1)[..., 0, 0]
+        target_score = logits[0, int(target_class)]
+        grads = torch.autograd.grad(target_score, var_features)[0]
+        gradcam = (grads.sum(dim=(-2, -1), keepdim=True) * var_features).sum(dim=1, keepdim=True)
+        gradcam = gradcam.relu()
+        return F.interpolate(gradcam, size=x_bcos.shape[-2:], mode="nearest")
+
+
 def dynamic_linear_weights_to_importance_map(dynamic_linear_weights: Tensor) -> Tensor:
     if dynamic_linear_weights.dim() == 3:
         dynamic_linear_weights = dynamic_linear_weights.unsqueeze(0)
@@ -387,10 +415,11 @@ def find_random_patch_position(
 
 
 def resolve_patch_positions(
-    primary_contribution_map: Tensor,
-    secondary_contribution_map: Tensor,
-    primary_dynamic_linear_weights: Tensor,
-    secondary_dynamic_linear_weights: Tensor,
+    primary_contribution_map: Optional[Tensor],
+    secondary_contribution_map: Optional[Tensor],
+    primary_dynamic_linear_weights: Optional[Tensor],
+    secondary_dynamic_linear_weights: Optional[Tensor],
+    gradcam_map: Optional[Tensor],
     patch_size: int,
     pos_y: int,
     pos_x: int,
@@ -400,23 +429,37 @@ def resolve_patch_positions(
     if not use_explain_position:
         primary_pos = (max(0, pos_y), max(0, pos_x))
     elif position_rule == "margin":
+        if primary_contribution_map is None or secondary_contribution_map is None:
+            raise ValueError("Contribution maps are required when position_rule='margin'.")
         primary_pos = find_best_patch_position_from_contribution_margin(
             primary_contribution_map,
             secondary_contribution_map,
             patch_size,
         )
     elif position_rule == "top1":
+        if primary_contribution_map is None:
+            raise ValueError("Contribution map is required when position_rule='top1'.")
         primary_pos = find_best_patch_position_from_contribution_map(primary_contribution_map, patch_size)
     elif position_rule == "dynamic-margin":
+        if primary_dynamic_linear_weights is None or secondary_dynamic_linear_weights is None:
+            raise ValueError("Dynamic linear weights are required when position_rule='dynamic-margin'.")
         primary_pos = find_best_patch_position_from_dynamic_margin(
             primary_dynamic_linear_weights,
             secondary_dynamic_linear_weights,
             patch_size,
         )
     elif position_rule == "dynamic":
+        if primary_dynamic_linear_weights is None:
+            raise ValueError("Dynamic linear weights are required when position_rule='dynamic'.")
         primary_pos = find_best_patch_position_from_dynamic_map(primary_dynamic_linear_weights, patch_size)
     elif position_rule == "random":
+        if primary_contribution_map is None:
+            raise ValueError("Contribution map is required when position_rule='random'.")
         primary_pos = find_random_patch_position(primary_contribution_map, patch_size)
+    elif position_rule == "gradcam":
+        if gradcam_map is None:
+            raise ValueError("gradcam_map is required when position_rule='gradcam'.")
+        primary_pos = find_best_patch_position_from_contribution_map(gradcam_map, patch_size)
     else:
         raise ValueError(f"Unsupported position rule: {position_rule}")
     # secondary_pos = find_best_patch_position(
@@ -763,13 +806,21 @@ def run_explain_guided_attack(
     attack_original_model: bool,
     verbose: bool,
 ) -> Tuple[Tensor, int, int, List[Tuple[int, float, float, float]]]:
-    primary_guidance = extract_attribution(guide_model, to_bcos_input(x_rgb), target_class=target_class)
-    secondary_guidance = extract_attribution(guide_model, to_bcos_input(x_rgb), target_class=secondary_class)
+    x_bcos = to_bcos_input(x_rgb)
+    gradcam_map: Optional[Tensor] = None
+    primary_guidance: Dict[str, Tensor] = {}
+    secondary_guidance: Dict[str, Tensor] = {}
+    if use_explain_position and position_rule == "gradcam":
+        gradcam_map = extract_bcos_gradcam_map(guide_model, x_bcos, target_class)
+    else:
+        primary_guidance = extract_attribution(guide_model, x_bcos, target_class=target_class)
+        secondary_guidance = extract_attribution(guide_model, x_bcos, target_class=secondary_class)
     patch_positions = resolve_patch_positions(
-        primary_guidance["contribution_map"],
-        secondary_guidance["contribution_map"],
-        primary_guidance["dynamic_linear_weights"],
-        secondary_guidance["dynamic_linear_weights"],
+        primary_guidance.get("contribution_map"),
+        secondary_guidance.get("contribution_map"),
+        primary_guidance.get("dynamic_linear_weights"),
+        secondary_guidance.get("dynamic_linear_weights"),
+        gradcam_map,
         patch_size,
         pos_y=pos_y,
         pos_x=pos_x,
@@ -883,22 +934,30 @@ def run_explain_guided_attack_batch(
     for image_idx in range(batch_size):
         target_class = int(target_classes[image_idx].item())
         secondary_class = int(secondary_classes[image_idx].item())
-        primary_guidance = extract_attribution(
-            guide_model,
-            to_bcos_input(x_rgb[image_idx:image_idx + 1]),
-            target_class=target_class,
-        )
-        secondary_guidance = extract_attribution(
-            guide_model,
-            to_bcos_input(x_rgb[image_idx:image_idx + 1]),
-            target_class=secondary_class,
-        )
+        image_bcos = to_bcos_input(x_rgb[image_idx:image_idx + 1])
+        gradcam_map: Optional[Tensor] = None
+        primary_guidance: Dict[str, Tensor] = {}
+        secondary_guidance: Dict[str, Tensor] = {}
+        if use_explain_position and position_rule == "gradcam":
+            gradcam_map = extract_bcos_gradcam_map(guide_model, image_bcos, target_class)
+        else:
+            primary_guidance = extract_attribution(
+                guide_model,
+                image_bcos,
+                target_class=target_class,
+            )
+            secondary_guidance = extract_attribution(
+                guide_model,
+                image_bcos,
+                target_class=secondary_class,
+            )
         patch_positions.append(
             resolve_patch_positions(
-                primary_guidance["contribution_map"],
-                secondary_guidance["contribution_map"],
-                primary_guidance["dynamic_linear_weights"],
-                secondary_guidance["dynamic_linear_weights"],
+                primary_guidance.get("contribution_map"),
+                secondary_guidance.get("contribution_map"),
+                primary_guidance.get("dynamic_linear_weights"),
+                secondary_guidance.get("dynamic_linear_weights"),
+                gradcam_map,
                 patch_size,
                 pos_y=pos_y,
                 pos_x=pos_x,
@@ -1384,14 +1443,15 @@ def main() -> None:
     )
     parser.add_argument(
         "--position-rule",
-        choices=("margin", "top1", "dynamic-margin", "dynamic", "random"),
+        choices=POSITION_RULES,
         default="margin",
         help=(
             "Patch position rule: margin = max patch sum(top1 contribution - top2 contribution), "
             "top1 = max patch sum(top1 contribution), "
             "dynamic-margin = max patch sum(top1 6-channel dynamic-weight norm - top2 6-channel dynamic-weight norm), "
             "dynamic = max patch sum(top1 6-channel dynamic-weight norm), "
-            "random = random top-left patch position."
+            "random = random top-left patch position, "
+            "gradcam = max patch sum(Grad-CAM heatmap)."
         ),
     )
     parser.add_argument("--save-images", action="store_true", help="Save before/after PNGs for each image")
@@ -1441,6 +1501,7 @@ def main() -> None:
         "dynamic-margin": "max patch sum(top1 6-channel dynamic-weight norm - top2 6-channel dynamic-weight norm)",
         "dynamic": "max patch sum(top1 6-channel dynamic-weight norm)",
         "random": "random top-left patch position",
+        "gradcam": "max patch sum(Grad-CAM heatmap)",
     }[args.position_rule]
     print(f"  Position rule: {args.position_rule} ({position_rule_text})")
     if args.attack_original_model:

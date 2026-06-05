@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
 from tqdm import tqdm
@@ -32,7 +33,7 @@ from ImageNetModels import ImageNetModel
 
 
 IMAGENET_SL = 224
-POSITION_RULES = ("random", "margin", "top1", "dynamic-margin", "dynamic")
+POSITION_RULES = ("random", "margin", "top1", "dynamic-margin", "dynamic", "gradcam")
 
 
 def bcos_location_source(position_rule: str, fixed_position: bool) -> str:
@@ -40,6 +41,33 @@ def bcos_location_source(position_rule: str, fixed_position: bool) -> str:
     if position_rule == "margin":
         return f"bcos_contribution_margin_{suffix}"
     return f"bcos_{position_rule.replace('-', '_')}_{suffix}"
+
+
+def extract_bcos_gradcam_map(
+    guide_model: torch.nn.Module,
+    x_bcos: torch.Tensor,
+    target_class: int,
+) -> torch.Tensor:
+    try:
+        features = guide_model.get_feature_extractor()
+        classifier = guide_model.get_classifier()
+    except AttributeError as exc:
+        raise AttributeError(
+            "Grad-CAM position rule requires a B-cos model with "
+            "get_feature_extractor() and get_classifier()."
+        ) from exc
+
+    with torch.no_grad():
+        feature_map = features(x_bcos)
+
+    with torch.enable_grad():
+        var_features = feature_map.detach().requires_grad_(True)
+        logits = F.adaptive_avg_pool2d(classifier(var_features), 1)[..., 0, 0]
+        target_score = logits[0, int(target_class)]
+        grads = torch.autograd.grad(target_score, var_features)[0]
+        gradcam = (grads.sum(dim=(-2, -1), keepdim=True) * var_features).sum(dim=1, keepdim=True)
+        gradcam = gradcam.relu()
+        return F.interpolate(gradcam, size=x_bcos.shape[-2:], mode="nearest")
 
 
 def resolve_bcos_position_by_rule(
@@ -88,33 +116,36 @@ def resolve_bcos_position_by_rule(
         secondary_class = int(resolve_runner_up_classes(outputs, target_classes)[0].item())
         guide_prediction = int(outputs.argmax(dim=1)[0].item())
 
-    primary_guidance = extract_attribution(guide_model, x_bcos, target_class=int(true_label))
-    secondary_guidance = extract_attribution(guide_model, x_bcos, target_class=secondary_class)
-
-    if position_rule == "margin":
-        pos_y, pos_x = find_best_patch_position_from_contribution_margin(
-            primary_guidance["contribution_map"],
-            secondary_guidance["contribution_map"],
-            patch_size,
-        )
-    elif position_rule == "top1":
-        pos_y, pos_x = find_best_patch_position_from_contribution_map(
-            primary_guidance["contribution_map"],
-            patch_size,
-        )
-    elif position_rule == "dynamic-margin":
-        pos_y, pos_x = find_best_patch_position_from_dynamic_margin(
-            primary_guidance["dynamic_linear_weights"],
-            secondary_guidance["dynamic_linear_weights"],
-            patch_size,
-        )
-    elif position_rule == "dynamic":
-        pos_y, pos_x = find_best_patch_position_from_dynamic_map(
-            primary_guidance["dynamic_linear_weights"],
-            patch_size,
-        )
+    if position_rule == "gradcam":
+        gradcam_map = extract_bcos_gradcam_map(guide_model, x_bcos, int(true_label))
+        pos_y, pos_x = find_best_patch_position_from_contribution_map(gradcam_map, patch_size)
     else:
-        raise ValueError(f"Unsupported position rule: {position_rule}")
+        primary_guidance = extract_attribution(guide_model, x_bcos, target_class=int(true_label))
+        secondary_guidance = extract_attribution(guide_model, x_bcos, target_class=secondary_class)
+        if position_rule == "margin":
+            pos_y, pos_x = find_best_patch_position_from_contribution_margin(
+                primary_guidance["contribution_map"],
+                secondary_guidance["contribution_map"],
+                patch_size,
+            )
+        elif position_rule == "top1":
+            pos_y, pos_x = find_best_patch_position_from_contribution_map(
+                primary_guidance["contribution_map"],
+                patch_size,
+            )
+        elif position_rule == "dynamic-margin":
+            pos_y, pos_x = find_best_patch_position_from_dynamic_margin(
+                primary_guidance["dynamic_linear_weights"],
+                secondary_guidance["dynamic_linear_weights"],
+                patch_size,
+            )
+        elif position_rule == "dynamic":
+            pos_y, pos_x = find_best_patch_position_from_dynamic_map(
+                primary_guidance["dynamic_linear_weights"],
+                patch_size,
+            )
+        else:
+            raise ValueError(f"Unsupported position rule: {position_rule}")
 
     return np.array([pos_y, pos_x], dtype=np.int64), guide_prediction, secondary_class
 
