@@ -27,12 +27,96 @@ from ConCamoPatch import (
     parse_linf,
     pytorch_switch,
     resolve_bcos_guide_model,
-    resolve_fixed_bcos_position,
 )
 from ImageNetModels import ImageNetModel
 
 
 IMAGENET_SL = 224
+POSITION_RULES = ("random", "margin", "top1", "dynamic-margin", "dynamic")
+
+
+def bcos_location_source(position_rule: str, fixed_position: bool) -> str:
+    suffix = "fixed" if fixed_position else "init"
+    if position_rule == "margin":
+        return f"bcos_contribution_margin_{suffix}"
+    return f"bcos_{position_rule.replace('-', '_')}_{suffix}"
+
+
+def resolve_bcos_position_by_rule(
+    model: ImageNetModel,
+    x_rgb_chw: torch.Tensor,
+    true_label: int,
+    patch_size: int,
+    model_idx: int,
+    device: Optional[str],
+    position_rule: str,
+    guide: Optional[ImageNetModel] = None,
+) -> Tuple[np.ndarray, int, int]:
+    if position_rule == "random":
+        raise ValueError("Random positions are resolved in the batch runner, not through B-cos.")
+
+    repo_root = Path(__file__).resolve().parents[1]
+    attacks_dir = repo_root / "attacks"
+    import sys
+
+    for path in (repo_root, attacks_dir):
+        path_str = str(path)
+        if path_str not in sys.path:
+            sys.path.insert(0, path_str)
+
+    from attacks.explain_guided_pixel_es_patch import (
+        extract_attribution,
+        find_best_patch_position_from_contribution_map,
+        find_best_patch_position_from_contribution_margin,
+        find_best_patch_position_from_dynamic_map,
+        find_best_patch_position_from_dynamic_margin,
+        resolve_runner_up_classes,
+        to_bcos_input,
+    )
+
+    if guide is None:
+        guide = resolve_bcos_guide_model(model, model_idx, device)
+
+    guide_model = guide.model
+    guide_device = guide.device
+    x_rgb = x_rgb_chw.unsqueeze(0).to(device=guide_device, dtype=torch.float32)
+    x_bcos = to_bcos_input(x_rgb)
+
+    with torch.inference_mode():
+        outputs = guide_model(x_bcos)
+        target_classes = torch.tensor([int(true_label)], device=outputs.device, dtype=torch.long)
+        secondary_class = int(resolve_runner_up_classes(outputs, target_classes)[0].item())
+        guide_prediction = int(outputs.argmax(dim=1)[0].item())
+
+    primary_guidance = extract_attribution(guide_model, x_bcos, target_class=int(true_label))
+    secondary_guidance = extract_attribution(guide_model, x_bcos, target_class=secondary_class)
+
+    if position_rule == "margin":
+        pos_y, pos_x = find_best_patch_position_from_contribution_margin(
+            primary_guidance["contribution_map"],
+            secondary_guidance["contribution_map"],
+            patch_size,
+        )
+    elif position_rule == "top1":
+        pos_y, pos_x = find_best_patch_position_from_contribution_map(
+            primary_guidance["contribution_map"],
+            patch_size,
+        )
+    elif position_rule == "dynamic-margin":
+        pos_y, pos_x = find_best_patch_position_from_dynamic_margin(
+            primary_guidance["dynamic_linear_weights"],
+            secondary_guidance["dynamic_linear_weights"],
+            patch_size,
+        )
+    elif position_rule == "dynamic":
+        pos_y, pos_x = find_best_patch_position_from_dynamic_map(
+            primary_guidance["dynamic_linear_weights"],
+            patch_size,
+        )
+    else:
+        raise ValueError(f"Unsupported position rule: {position_rule}")
+
+    return np.array([pos_y, pos_x], dtype=np.int64), guide_prediction, secondary_class
 
 
 def load_items_from_csv(csv_path: Path) -> List[Tuple[int, int, str, str]]:
@@ -284,7 +368,7 @@ def run_strict_one_plus_one_batch(
     patch_counter = 0
     for query in tqdm(range(1, args.queries), desc="strict (1+1)-ES"):
         patch_counter += 1
-        if args.fixed_bcos_position or patch_counter < args.li:
+        if args.fixed_position or patch_counter < args.li:
             candidate_genos = np.stack([mutate(patch_genos[idx], args.mut) for idx in range(batch_size)], axis=0)
             candidate_locs = locs
             candidate_patches = render_patches_for_batch(x_batch, candidate_genos, candidate_locs, patch_size, args.linf)
@@ -347,7 +431,7 @@ def run_strict_one_plus_one_batch(
             true_label=int(true_labels[idx]),
             final_prediction=int(final_pred[idx]),
             eps_linf=args.linf,
-            fixed_location=args.fixed_bcos_position,
+            fixed_location=args.fixed_position,
             location_source=args.location_source,
             attack_model=attack_model_name,
             attack_model_source=attack_model_source,
@@ -368,7 +452,7 @@ def run_strict_one_plus_one_batch(
                 "loc_x": int(locs[idx, 1]),
                 "initial_loc_y": "" if saved_initial_locs[idx] is None else int(saved_initial_locs[idx][0]),
                 "initial_loc_x": "" if saved_initial_locs[idx] is None else int(saved_initial_locs[idx][1]),
-                "fixed_location": int(args.fixed_bcos_position),
+                "fixed_location": int(args.fixed_position),
                 "location_source": args.location_source or "",
                 "eps_linf": "" if args.linf is None else float(args.linf),
                 "final_l2": float(current_l2[idx]),
@@ -406,6 +490,24 @@ def main() -> None:
     parser.add_argument("--linf", type=parse_linf, default=None)
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--image_batch_size", "--image-batch-size", dest="image_batch_size", type=int, default=8)
+    parser.add_argument(
+        "--position_rule",
+        "--position-rule",
+        dest="position_rule",
+        choices=POSITION_RULES,
+        default=None,
+        help=(
+            "Initial patch location rule. Default is random unless --init_bcos_position "
+            "or --fixed_bcos_position is used. Non-random rules use B-cos explanations."
+        ),
+    )
+    parser.add_argument(
+        "--fixed_position",
+        "--fixed-position",
+        dest="fixed_position",
+        action="store_true",
+        help="Keep the initial patch location fixed for all queries.",
+    )
     parser.add_argument("--init_bcos_position", action="store_true")
     parser.add_argument("--fixed_bcos_position", action="store_true")
     parser.add_argument("--seed", type=int, default=None)
@@ -415,6 +517,14 @@ def main() -> None:
 
     if args.image_batch_size <= 0:
         parser.error("--image_batch_size must be > 0")
+    if args.fixed_bcos_position and args.position_rule not in (None, "margin"):
+        parser.error("--fixed_bcos_position is an alias for --position-rule margin --fixed-position.")
+    if args.init_bcos_position and args.position_rule not in (None, "margin"):
+        parser.error("--init_bcos_position is an alias for --position-rule margin.")
+    if args.position_rule is None:
+        args.position_rule = "margin" if (args.init_bcos_position or args.fixed_bcos_position) else "random"
+    if args.fixed_bcos_position:
+        args.fixed_position = True
     if args.seed is not None:
         np.random.seed(args.seed)
 
@@ -433,9 +543,10 @@ def main() -> None:
     attack_model_name = describe_attack_model(args.model, attack_model_source)
     print(f"Attacking model: {attack_model_name}")
     print("Algorithm: strict per-image (1+1)-ES; batch dimension is images, not candidates.")
+    print(f"Position rule: {args.position_rule}; fixed_position={args.fixed_position}")
 
     bcos_guide = None
-    if args.init_bcos_position or args.fixed_bcos_position:
+    if args.position_rule != "random":
         bcos_guide = resolve_bcos_guide_model(model, args.model, args.device)
 
     all_rows: List[Dict[str, object]] = []
@@ -454,26 +565,34 @@ def main() -> None:
         x_batch, x_chw_tensors = load_image_batch(image_paths, load_image)
 
         initial_locs = None
-        args.location_source = None
-        if args.init_bcos_position or args.fixed_bcos_position:
-            args.location_source = (
-                "bcos_contribution_margin_fixed"
-                if args.fixed_bcos_position
-                else "bcos_contribution_margin_init"
-            )
+        args.location_source = None if args.position_rule == "random" else bcos_location_source(
+            args.position_rule,
+            args.fixed_position,
+        )
+        if args.position_rule == "random" and args.fixed_position:
+            _, h, _, _ = x_batch.shape
+            if h <= args.s:
+                initial_locs = np.zeros((len(chunk), 2), dtype=np.int64)
+            else:
+                initial_locs = np.random.randint(h - args.s, size=(len(chunk), 2))
+            args.location_source = "random_fixed"
+            for idx, loc in enumerate(initial_locs):
+                print(f"  image {indices[idx]:05d}: random fixed init loc=({int(loc[0])},{int(loc[1])})")
+        elif args.position_rule != "random":
             initial_locs_list = []
             for idx, x_chw in enumerate(x_chw_tensors):
-                loc, guide_prediction, secondary_class = resolve_fixed_bcos_position(
+                loc, guide_prediction, secondary_class = resolve_bcos_position_by_rule(
                     model,
                     x_chw,
                     int(true_labels[idx]),
                     args.s,
                     args.model,
                     args.device,
+                    args.position_rule,
                     guide=bcos_guide,
                 )
                 print(
-                    f"  image {indices[idx]:05d}: B-cos init loc=({int(loc[0])},{int(loc[1])}) "
+                    f"  image {indices[idx]:05d}: {args.position_rule} init loc=({int(loc[0])},{int(loc[1])}) "
                     f"guide_pred={guide_prediction} secondary={secondary_class}"
                 )
                 initial_locs_list.append(loc)
