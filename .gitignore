@@ -58,3 +58,5 @@ used_images_*.csv
 imagenet/
 weights/
 vpnuser03-macos-windows.ovpn
+
+kaggle_results

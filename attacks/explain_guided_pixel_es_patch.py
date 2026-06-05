@@ -322,6 +322,52 @@ def find_best_patch_position_from_contribution_map(
     return int(best_y), int(best_x)
 
 
+def dynamic_linear_weights_to_importance_map(dynamic_linear_weights: Tensor) -> Tensor:
+    if dynamic_linear_weights.dim() == 3:
+        dynamic_linear_weights = dynamic_linear_weights.unsqueeze(0)
+    if dynamic_linear_weights.dim() != 4 or dynamic_linear_weights.shape[1] != 6:
+        raise ValueError(
+            "Expected dynamic_linear_weights with shape [B, 6, H, W] from model.explain()."
+        )
+
+    importance = dynamic_linear_weights.norm(p=2, dim=1)
+    if importance.shape[0] != 1:
+        raise ValueError(f"Expected one dynamic importance map, got batch size {importance.shape[0]}.")
+    return importance.squeeze(0)
+
+
+def find_best_patch_position_from_dynamic_map(
+    dynamic_linear_weights: Tensor,
+    patch_size: int,
+) -> Tuple[int, int]:
+    dynamic_map = dynamic_linear_weights_to_importance_map(dynamic_linear_weights)
+    dynamic_sums = patch_window_sums(dynamic_map.detach().cpu().numpy().astype(np.float64), patch_size)
+    best_flat = int(np.argmax(dynamic_sums))
+    best_y, best_x = np.unravel_index(best_flat, dynamic_sums.shape)
+    return int(best_y), int(best_x)
+
+
+def find_best_patch_position_from_dynamic_margin(
+    primary_dynamic_linear_weights: Tensor,
+    secondary_dynamic_linear_weights: Tensor,
+    patch_size: int,
+) -> Tuple[int, int]:
+    primary = dynamic_linear_weights_to_importance_map(primary_dynamic_linear_weights)
+    secondary = dynamic_linear_weights_to_importance_map(secondary_dynamic_linear_weights)
+    primary_np = primary.detach().cpu().numpy().astype(np.float64)
+    secondary_np = secondary.detach().cpu().numpy().astype(np.float64)
+    if primary_np.shape != secondary_np.shape:
+        raise ValueError(
+            "Primary and secondary dynamic maps must have the same shape, "
+            f"got {primary_np.shape} and {secondary_np.shape}."
+        )
+
+    margin_sums = patch_window_sums(primary_np, patch_size) - patch_window_sums(secondary_np, patch_size)
+    best_flat = int(np.argmax(margin_sums))
+    best_y, best_x = np.unravel_index(best_flat, margin_sums.shape)
+    return int(best_y), int(best_x)
+
+
 def find_best_patch_position(
     contribution_map: Tensor,
     patch_size: int,
@@ -343,6 +389,8 @@ def find_random_patch_position(
 def resolve_patch_positions(
     primary_contribution_map: Tensor,
     secondary_contribution_map: Tensor,
+    primary_dynamic_linear_weights: Tensor,
+    secondary_dynamic_linear_weights: Tensor,
     patch_size: int,
     pos_y: int,
     pos_x: int,
@@ -359,6 +407,14 @@ def resolve_patch_positions(
         )
     elif position_rule == "top1":
         primary_pos = find_best_patch_position_from_contribution_map(primary_contribution_map, patch_size)
+    elif position_rule == "dynamic-margin":
+        primary_pos = find_best_patch_position_from_dynamic_margin(
+            primary_dynamic_linear_weights,
+            secondary_dynamic_linear_weights,
+            patch_size,
+        )
+    elif position_rule == "dynamic":
+        primary_pos = find_best_patch_position_from_dynamic_map(primary_dynamic_linear_weights, patch_size)
     elif position_rule == "random":
         primary_pos = find_random_patch_position(primary_contribution_map, patch_size)
     else:
@@ -712,6 +768,8 @@ def run_explain_guided_attack(
     patch_positions = resolve_patch_positions(
         primary_guidance["contribution_map"],
         secondary_guidance["contribution_map"],
+        primary_guidance["dynamic_linear_weights"],
+        secondary_guidance["dynamic_linear_weights"],
         patch_size,
         pos_y=pos_y,
         pos_x=pos_x,
@@ -839,6 +897,8 @@ def run_explain_guided_attack_batch(
             resolve_patch_positions(
                 primary_guidance["contribution_map"],
                 secondary_guidance["contribution_map"],
+                primary_guidance["dynamic_linear_weights"],
+                secondary_guidance["dynamic_linear_weights"],
                 patch_size,
                 pos_y=pos_y,
                 pos_x=pos_x,
@@ -1324,11 +1384,14 @@ def main() -> None:
     )
     parser.add_argument(
         "--position-rule",
-        choices=("margin", "top1", "random"),
+        choices=("margin", "top1", "dynamic-margin", "dynamic", "random"),
         default="margin",
         help=(
             "Patch position rule: margin = max patch sum(top1 contribution - top2 contribution), "
-            "top1 = max patch sum(top1 contribution), random = random top-left patch position."
+            "top1 = max patch sum(top1 contribution), "
+            "dynamic-margin = max patch sum(top1 6-channel dynamic-weight norm - top2 6-channel dynamic-weight norm), "
+            "dynamic = max patch sum(top1 6-channel dynamic-weight norm), "
+            "random = random top-left patch position."
         ),
     )
     parser.add_argument("--save-images", action="store_true", help="Save before/after PNGs for each image")
@@ -1375,6 +1438,8 @@ def main() -> None:
     position_rule_text = {
         "margin": "max patch sum(top1 contribution - top2 contribution)",
         "top1": "max patch sum(top1 contribution)",
+        "dynamic-margin": "max patch sum(top1 6-channel dynamic-weight norm - top2 6-channel dynamic-weight norm)",
+        "dynamic": "max patch sum(top1 6-channel dynamic-weight norm)",
         "random": "random top-left patch position",
     }[args.position_rule]
     print(f"  Position rule: {args.position_rule} ({position_rule_text})")
