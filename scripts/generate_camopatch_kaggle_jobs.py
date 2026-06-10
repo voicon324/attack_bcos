@@ -25,6 +25,8 @@ DATASET_SOURCES = [
     "hkhnhduy/weights-bcos",
     "sautkin/imagenet1kvalid",
 ]
+GITHUB_REPO = "https://github.com/voicon324/attack_bcos.git"
+GITHUB_REF = "main"
 
 
 def linf_slug(linf: str) -> str:
@@ -47,7 +49,7 @@ def iter_jobs() -> Iterable[dict]:
                         "kernel_type": "script",
                         "language": "python",
                         "enable_gpu": True,
-                        "enable_internet": False,
+                        "enable_internet": True,
                         "is_private": True,
                         "dataset_sources": DATASET_SOURCES,
                         "competition_sources": [],
@@ -70,6 +72,8 @@ def iter_jobs() -> Iterable[dict]:
                             "save_images": False,
                             "code_dataset_owner": "hkhnhduy",
                             "code_dataset_slug": "attack-bcos-github",
+                            "github_repo": GITHUB_REPO,
+                            "github_ref": GITHUB_REF,
                         },
                     }
 

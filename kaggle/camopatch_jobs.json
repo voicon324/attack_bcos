@@ -8,7 +8,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -34,7 +34,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -45,7 +47,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -71,7 +73,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -82,7 +86,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -108,7 +112,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -119,7 +125,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -145,7 +151,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -156,7 +164,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -182,7 +190,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -193,7 +203,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -219,7 +229,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -230,7 +242,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -256,7 +268,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -267,7 +281,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -293,7 +307,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -304,7 +320,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -330,7 +346,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -341,7 +359,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -367,7 +385,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -378,7 +398,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -404,7 +424,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -415,7 +437,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -441,7 +463,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -452,7 +476,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -478,7 +502,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -489,7 +515,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -515,7 +541,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -526,7 +554,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -552,7 +580,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -563,7 +593,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -589,7 +619,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -600,7 +632,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -626,7 +658,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -637,7 +671,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -663,7 +697,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -674,7 +710,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -700,7 +736,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -711,7 +749,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -737,7 +775,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -748,7 +788,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -774,7 +814,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -785,7 +827,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -811,7 +853,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -822,7 +866,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -848,7 +892,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -859,7 +905,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -885,7 +931,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -896,7 +944,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -922,7 +970,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -933,7 +983,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -959,7 +1009,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -970,7 +1022,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -996,7 +1048,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1007,7 +1061,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1033,7 +1087,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1044,7 +1100,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1070,7 +1126,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1081,7 +1139,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1107,7 +1165,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1118,7 +1178,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1144,7 +1204,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1155,7 +1217,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1181,7 +1243,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1192,7 +1256,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1218,7 +1282,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1229,7 +1295,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1255,7 +1321,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1266,7 +1334,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1292,7 +1360,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1303,7 +1373,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1329,7 +1399,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1340,7 +1412,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1366,7 +1438,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1377,7 +1451,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1403,7 +1477,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1414,7 +1490,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1440,7 +1516,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1451,7 +1529,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1477,7 +1555,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1488,7 +1568,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1514,7 +1594,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1525,7 +1607,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1551,7 +1633,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1562,7 +1646,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1588,7 +1672,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1599,7 +1685,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1625,7 +1711,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1636,7 +1724,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1662,7 +1750,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1673,7 +1763,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1699,7 +1789,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1710,7 +1802,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1736,7 +1828,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1747,7 +1841,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1773,7 +1867,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1784,7 +1880,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1810,7 +1906,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1821,7 +1919,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1847,7 +1945,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1858,7 +1958,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1884,7 +1984,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1895,7 +1997,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1921,7 +2023,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1932,7 +2036,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1958,7 +2062,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -1969,7 +2075,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -1995,7 +2101,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2006,7 +2114,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2032,7 +2140,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2043,7 +2153,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2069,7 +2179,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2080,7 +2192,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2106,7 +2218,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2117,7 +2231,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2143,7 +2257,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2154,7 +2270,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2180,7 +2296,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2191,7 +2309,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2217,7 +2335,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2228,7 +2348,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2254,7 +2374,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2265,7 +2387,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2291,7 +2413,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2302,7 +2426,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2328,7 +2452,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2339,7 +2465,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2365,7 +2491,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2376,7 +2504,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2402,7 +2530,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2413,7 +2543,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2439,7 +2569,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2450,7 +2582,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2476,7 +2608,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2487,7 +2621,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2513,7 +2647,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2524,7 +2660,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2550,7 +2686,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2561,7 +2699,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2587,7 +2725,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2598,7 +2738,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2624,7 +2764,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2635,7 +2777,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2661,7 +2803,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2672,7 +2816,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2698,7 +2842,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2709,7 +2855,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2735,7 +2881,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2746,7 +2894,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2772,7 +2920,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2783,7 +2933,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2809,7 +2959,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2820,7 +2972,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2846,7 +2998,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2857,7 +3011,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2883,7 +3037,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2894,7 +3050,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2920,7 +3076,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2931,7 +3089,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2957,7 +3115,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -2968,7 +3128,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -2994,7 +3154,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3005,7 +3167,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3031,7 +3193,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3042,7 +3206,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3068,7 +3232,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3079,7 +3245,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3105,7 +3271,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3116,7 +3284,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3142,7 +3310,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3153,7 +3323,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3179,7 +3349,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3190,7 +3362,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3216,7 +3388,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3227,7 +3401,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3253,7 +3427,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3264,7 +3440,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3290,7 +3466,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3301,7 +3479,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3327,7 +3505,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3338,7 +3518,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3364,7 +3544,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3375,7 +3557,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3401,7 +3583,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3412,7 +3596,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3438,7 +3622,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3449,7 +3635,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3475,7 +3661,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3486,7 +3674,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3512,7 +3700,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3523,7 +3713,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3549,7 +3739,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3560,7 +3752,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3586,7 +3778,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3597,7 +3791,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3623,7 +3817,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3634,7 +3830,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3660,7 +3856,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3671,7 +3869,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3697,7 +3895,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3708,7 +3908,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3734,7 +3934,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3745,7 +3947,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3771,7 +3973,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3782,7 +3986,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3808,7 +4012,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3819,7 +4025,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3845,7 +4051,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3856,7 +4064,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3882,7 +4090,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3893,7 +4103,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3919,7 +4129,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3930,7 +4142,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3956,7 +4168,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -3967,7 +4181,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -3993,7 +4207,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4004,7 +4220,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4030,7 +4246,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4041,7 +4259,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4067,7 +4285,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4078,7 +4298,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4104,7 +4324,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4115,7 +4337,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4141,7 +4363,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4152,7 +4376,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4178,7 +4402,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4189,7 +4415,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4215,7 +4441,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4226,7 +4454,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4252,7 +4480,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4263,7 +4493,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4289,7 +4519,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4300,7 +4532,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4326,7 +4558,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4337,7 +4571,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4363,7 +4597,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4374,7 +4610,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4400,7 +4636,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4411,7 +4649,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4437,7 +4675,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4448,7 +4688,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4474,7 +4714,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4485,7 +4727,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4511,7 +4753,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4522,7 +4766,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4548,7 +4792,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4559,7 +4805,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4585,7 +4831,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4596,7 +4844,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4622,7 +4870,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4633,7 +4883,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4659,7 +4909,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4670,7 +4922,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4696,7 +4948,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4707,7 +4961,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4733,7 +4987,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4744,7 +5000,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4770,7 +5026,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4781,7 +5039,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4807,7 +5065,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4818,7 +5078,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4844,7 +5104,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4855,7 +5117,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4881,7 +5143,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4892,7 +5156,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4918,7 +5182,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4929,7 +5195,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4955,7 +5221,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -4966,7 +5234,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -4992,7 +5260,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5003,7 +5273,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5029,7 +5299,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5040,7 +5312,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5066,7 +5338,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5077,7 +5351,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5103,7 +5377,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5114,7 +5390,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5140,7 +5416,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5151,7 +5429,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5177,7 +5455,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5188,7 +5468,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5214,7 +5494,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5225,7 +5507,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5251,7 +5533,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5262,7 +5546,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5288,7 +5572,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5299,7 +5585,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5325,7 +5611,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5336,7 +5624,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5362,7 +5650,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5373,7 +5663,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5399,7 +5689,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5410,7 +5702,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5436,7 +5728,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5447,7 +5741,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5473,7 +5767,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5484,7 +5780,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5510,7 +5806,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5521,7 +5819,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5547,7 +5845,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5558,7 +5858,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5584,7 +5884,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5595,7 +5897,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5621,7 +5923,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5632,7 +5936,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5658,7 +5962,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5669,7 +5975,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5695,7 +6001,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5706,7 +6014,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5732,7 +6040,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5743,7 +6053,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5769,7 +6079,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5780,7 +6092,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5806,7 +6118,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5817,7 +6131,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5843,7 +6157,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5854,7 +6170,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5880,7 +6196,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5891,7 +6209,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5917,7 +6235,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5928,7 +6248,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5954,7 +6274,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -5965,7 +6287,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -5991,7 +6313,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6002,7 +6326,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6028,7 +6352,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6039,7 +6365,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6065,7 +6391,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6076,7 +6404,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6102,7 +6430,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6113,7 +6443,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6139,7 +6469,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6150,7 +6482,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6176,7 +6508,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6187,7 +6521,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6213,7 +6547,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6224,7 +6560,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6250,7 +6586,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6261,7 +6599,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6287,7 +6625,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     },
     {
@@ -6298,7 +6638,7 @@
       "kernel_type": "script",
       "language": "python",
       "enable_gpu": true,
-      "enable_internet": false,
+      "enable_internet": true,
       "is_private": true,
       "dataset_sources": [
         "hkhnhduy/attack-bcos-github",
@@ -6324,7 +6664,9 @@
         "fixed_position": true,
         "save_images": false,
         "code_dataset_owner": "hkhnhduy",
-        "code_dataset_slug": "attack-bcos-github"
+        "code_dataset_slug": "attack-bcos-github",
+        "github_repo": "https://github.com/voicon324/attack_bcos.git",
+        "github_ref": "main"
       }
     }
   ]
