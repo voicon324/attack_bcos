@@ -11,9 +11,12 @@ CODE_DATASET = "attack-bcos-github"
 CODE_OWNER = "hkhnhduy"
 DEFAULT_GITHUB_REPO = "https://github.com/voicon324/attack_bcos.git"
 DEFAULT_GITHUB_REF = "main"
+EMBEDDED_JOB_CONFIG = None
 
 
 def load_job_config() -> dict:
+    if EMBEDDED_JOB_CONFIG is not None:
+        return dict(EMBEDDED_JOB_CONFIG)
     config_path = Path("job_config.json")
     if not config_path.is_file():
         return {}
@@ -56,6 +59,9 @@ def clone_repo(config: dict) -> Path:
 
 
 def main() -> None:
+    job_config = load_job_config()
+    if job_config:
+        Path("/kaggle/working/job_config.json").write_text(json.dumps(job_config, indent=2) + "\n")
     repo = find_repo()
     work_repo = Path("/kaggle/working/attack_bcos")
     if repo.resolve() != work_repo.resolve():
@@ -67,7 +73,7 @@ def main() -> None:
             ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", "artifacts", "kaggle_runs"),
         )
     runner = work_repo / "kaggle" / "camopatch_job" / "run_camopatch_job.py"
-    config = Path("job_config.json").resolve()
+    config = Path("/kaggle/working/job_config.json").resolve()
     subprocess.check_call([sys.executable, "-u", str(runner), "--config", str(config)], cwd=str(work_repo))
 
 

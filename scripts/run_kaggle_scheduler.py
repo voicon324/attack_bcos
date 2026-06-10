@@ -228,6 +228,12 @@ def stage_kernel(run_root: Path, job: dict, account: dict) -> tuple[Path, str, s
     metadata = build_kernel_metadata(job, account["username"], slug)
     save_json(kernel_dir / "kernel-metadata.json", metadata)
     save_json(kernel_dir / "job_config.json", job.get("job_config", {}))
+    code_file = kernel_dir / metadata["code_file"]
+    if code_file.is_file():
+        text = code_file.read_text(encoding="utf-8")
+        embedded_config = json.dumps(job.get("job_config", {}), indent=2, sort_keys=True)
+        text = text.replace("EMBEDDED_JOB_CONFIG = None", f"EMBEDDED_JOB_CONFIG = {embedded_config}")
+        code_file.write_text(text, encoding="utf-8")
     url = f"https://www.kaggle.com/code/{account['username']}/{slug}"
     return kernel_dir, slug, url
 
