@@ -19,6 +19,7 @@ DATASET_ID_NO="${KAGGLE_DATASET_ID_NO:-}"
 KAGGLE_LICENSE="${KAGGLE_LICENSE:-CC0-1.0}"
 KAGGLE_IS_PRIVATE="${KAGGLE_IS_PRIVATE:-true}"
 KAGGLE_DIR_MODE="${KAGGLE_DIR_MODE:-zip}"
+KAGGLE_FORCE_RECREATE="${KAGGLE_FORCE_RECREATE:-false}"
 KAGGLE_RECREATE_INCOMPATIBLE="${KAGGLE_RECREATE_INCOMPATIBLE:-false}"
 VERSION_NOTE="${1:-sync $(date '+%Y-%m-%d %H:%M:%S')}"
 
@@ -183,6 +184,14 @@ if [[ "$DRY_RUN" == "1" ]]; then
     exit 0
 fi
 
+create_dataset_args() {
+    local args=(datasets create -p "$STAGE_DIR" -r "$KAGGLE_DIR_MODE")
+    if [[ "$KAGGLE_IS_PRIVATE" == "false" ]]; then
+        args+=(-u)
+    fi
+    printf '%s\n' "${args[@]}"
+}
+
 LAST_KAGGLE_OUTPUT=""
 run_kaggle_write() {
     local log_file
@@ -197,7 +206,15 @@ run_kaggle_write() {
     return "$rc"
 }
 
-if [[ "$DATASET_EXISTS" == "1" ]]; then
+if [[ "$DATASET_EXISTS" == "1" && "$KAGGLE_FORCE_RECREATE" == "true" ]]; then
+    echo "Deleting and recreating $DATASET_ID because KAGGLE_FORCE_RECREATE=true" >&2
+    "${KAGGLE_CMD[@]}" datasets delete -y "$DATASET_ID"
+    DATASET_ID_NO=""
+    export DATASET_ID_NO
+    write_dataset_metadata
+    mapfile -t CREATE_ARGS < <(create_dataset_args)
+    run_kaggle_write "${CREATE_ARGS[@]}"
+elif [[ "$DATASET_EXISTS" == "1" ]]; then
     if ! run_kaggle_write datasets version -p "$STAGE_DIR" -m "$VERSION_NOTE" -r "$KAGGLE_DIR_MODE"; then
         if grep -q 'Incompatible Dataset Type' <<<"$LAST_KAGGLE_OUTPUT" \
             && [[ "$KAGGLE_RECREATE_INCOMPATIBLE" == "true" ]]; then
@@ -206,11 +223,13 @@ if [[ "$DATASET_EXISTS" == "1" ]]; then
             DATASET_ID_NO=""
             export DATASET_ID_NO
             write_dataset_metadata
-            run_kaggle_write datasets create -p "$STAGE_DIR" -r "$KAGGLE_DIR_MODE"
+            mapfile -t CREATE_ARGS < <(create_dataset_args)
+            run_kaggle_write "${CREATE_ARGS[@]}"
         else
             exit 1
         fi
     fi
 else
-    run_kaggle_write datasets create -p "$STAGE_DIR" -r "$KAGGLE_DIR_MODE"
+    mapfile -t CREATE_ARGS < <(create_dataset_args)
+    run_kaggle_write "${CREATE_ARGS[@]}"
 fi
