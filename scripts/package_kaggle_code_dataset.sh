@@ -15,6 +15,7 @@ fi
 KAGGLE_JSON="${KAGGLE_JSON:-$ROOT/artifacts/secrets/kaggle.json}"
 DATASET_SLUG="${KAGGLE_DATASET_SLUG:-attack-bcos-github}"
 DATASET_TITLE="${KAGGLE_DATASET_TITLE:-attack-bcos-github}"
+DATASET_ID_NO="${KAGGLE_DATASET_ID_NO:-}"
 KAGGLE_LICENSE="${KAGGLE_LICENSE:-CC0-1.0}"
 KAGGLE_IS_PRIVATE="${KAGGLE_IS_PRIVATE:-true}"
 KAGGLE_DIR_MODE="${KAGGLE_DIR_MODE:-zip}"
@@ -64,7 +65,7 @@ export KAGGLE_CONFIG_DIR="$CFG_DIR"
 
 USERNAME="$("$PYTHON_BIN" -c 'import json, sys; print(json.load(open(sys.argv[1]))["username"])' "$KAGGLE_JSON")"
 DATASET_ID="${USERNAME}/${DATASET_SLUG}"
-export DATASET_ID DATASET_TITLE KAGGLE_LICENSE KAGGLE_IS_PRIVATE
+export DATASET_ID DATASET_TITLE DATASET_ID_NO KAGGLE_LICENSE KAGGLE_IS_PRIVATE
 
 stage_repo_files() {
     local repo_root="$1"
@@ -137,6 +138,8 @@ metadata = {
     "licenses": [{"name": os.environ["KAGGLE_LICENSE"]}],
     "isPrivate": os.environ["KAGGLE_IS_PRIVATE"].lower() == "true",
 }
+if os.environ.get("DATASET_ID_NO"):
+    metadata["id_no"] = os.environ["DATASET_ID_NO"]
 
 with open(sys.argv[1], "w", encoding="utf-8") as f:
     json.dump(metadata, f, indent=2)
@@ -154,8 +157,20 @@ if [[ "$DRY_RUN" == "1" ]]; then
     exit 0
 fi
 
+run_kaggle_write() {
+    local log_file
+    log_file="$(mktemp)"
+    local rc=0
+    "${KAGGLE_CMD[@]}" "$@" 2>&1 | tee "$log_file" || rc=$?
+    if grep -qE 'Dataset (version )?creation error:' "$log_file"; then
+        rc=1
+    fi
+    rm -f "$log_file"
+    return "$rc"
+}
+
 if "${KAGGLE_CMD[@]}" datasets metadata "$DATASET_ID" -p "$META_DIR" >/dev/null 2>&1; then
-    "${KAGGLE_CMD[@]}" datasets version -p "$STAGE_DIR" -m "$VERSION_NOTE" -r "$KAGGLE_DIR_MODE"
+    run_kaggle_write datasets version -p "$STAGE_DIR" -m "$VERSION_NOTE" -r "$KAGGLE_DIR_MODE"
 else
-    "${KAGGLE_CMD[@]}" datasets create -p "$STAGE_DIR" -r "$KAGGLE_DIR_MODE"
+    run_kaggle_write datasets create -p "$STAGE_DIR" -r "$KAGGLE_DIR_MODE"
 fi
