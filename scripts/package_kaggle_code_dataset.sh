@@ -65,6 +65,27 @@ export KAGGLE_CONFIG_DIR="$CFG_DIR"
 
 USERNAME="$("$PYTHON_BIN" -c 'import json, sys; print(json.load(open(sys.argv[1]))["username"])' "$KAGGLE_JSON")"
 DATASET_ID="${USERNAME}/${DATASET_SLUG}"
+
+DATASET_EXISTS=0
+if "${KAGGLE_CMD[@]}" datasets metadata "$DATASET_ID" -p "$META_DIR" >/dev/null 2>&1; then
+    DATASET_EXISTS=1
+    if [[ -z "$DATASET_ID_NO" && -f "$META_DIR/dataset-metadata.json" ]]; then
+        DATASET_ID_NO="$("$PYTHON_BIN" - "$META_DIR/dataset-metadata.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    metadata = json.load(handle)
+
+value = metadata.get("id_no") or metadata.get("datasetId") or metadata.get("idNo")
+if value is None and isinstance(metadata.get("info"), dict):
+    info = metadata["info"]
+    value = info.get("datasetId") or info.get("id_no") or info.get("idNo")
+print("" if value is None else value)
+PY
+)"
+    fi
+fi
 export DATASET_ID DATASET_TITLE DATASET_ID_NO KAGGLE_LICENSE KAGGLE_IS_PRIVATE
 
 stage_repo_files() {
@@ -108,7 +129,7 @@ stage_repo_files() {
 
         mkdir -p "$STAGE_DIR/$(dirname "$dest_prefix$rel")"
         cp -a "$repo_root/$rel" "$STAGE_DIR/$dest_prefix$rel"
-    done < <(git -C "$repo_root" ls-files -z --cached --others --exclude-standard)
+    done < <(git -C "$repo_root" ls-files -z --cached)
 }
 
 stage_extra_file() {
@@ -169,7 +190,7 @@ run_kaggle_write() {
     return "$rc"
 }
 
-if "${KAGGLE_CMD[@]}" datasets metadata "$DATASET_ID" -p "$META_DIR" >/dev/null 2>&1; then
+if [[ "$DATASET_EXISTS" == "1" ]]; then
     run_kaggle_write datasets version -p "$STAGE_DIR" -m "$VERSION_NOTE" -r "$KAGGLE_DIR_MODE"
 else
     run_kaggle_write datasets create -p "$STAGE_DIR" -r "$KAGGLE_DIR_MODE"

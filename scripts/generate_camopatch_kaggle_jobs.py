@@ -25,8 +25,8 @@ DATASET_SOURCES = [
     "hkhnhduy/weights-bcos",
     "sautkin/imagenet1kvalid",
 ]
-GITHUB_REPO = "https://github.com/voicon324/attack_bcos.git"
-GITHUB_REF = "main"
+COMPETITION_SOURCES = ["nvidia-nemotron-model-reasoning-challenge"]
+MACHINE_SHAPE = "NvidiaRtxPro6000"
 
 
 def linf_slug(linf: str) -> str:
@@ -49,10 +49,11 @@ def iter_jobs() -> Iterable[dict]:
                         "kernel_type": "script",
                         "language": "python",
                         "enable_gpu": True,
-                        "enable_internet": True,
+                        "enable_internet": False,
+                        "machine_shape": MACHINE_SHAPE,
                         "is_private": True,
                         "dataset_sources": DATASET_SOURCES,
-                        "competition_sources": [],
+                        "competition_sources": COMPETITION_SOURCES,
                         "output_pattern": ".*(zip|log|json|csv)$",
                         "expected_zip": f"{job_id}_result.zip",
                         "timeout_minutes": 720,
@@ -72,8 +73,6 @@ def iter_jobs() -> Iterable[dict]:
                             "save_images": False,
                             "code_dataset_owner": "hkhnhduy",
                             "code_dataset_slug": "attack-bcos-github",
-                            "github_repo": GITHUB_REPO,
-                            "github_ref": GITHUB_REF,
                         },
                     }
 

@@ -9,6 +9,11 @@
       "name": "aux",
       "kaggle_json": "kaggle_runs/accounts/aux/kaggle.json",
       "max_running": 2
+    },
+    {
+      "name": "dora",
+      "kaggle_json": "artifacts/secrets/kaggle_dora.json",
+      "max_running": 2
     }
   ]
 }

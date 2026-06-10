@@ -88,6 +88,14 @@ def discover_accounts(run_root: Path, accounts_config: Path | None) -> list[dict
             accounts.append({"name": "main", "kaggle_json": str(main), "max_running": 2})
         for path in sorted((run_root / "accounts").glob("*/kaggle.json")):
             accounts.append({"name": path.parent.name, "kaggle_json": str(path), "max_running": 2})
+        for path in sorted(Path("artifacts/secrets").glob("kaggle_*.json")):
+            accounts.append(
+                {
+                    "name": path.stem.removeprefix("kaggle_"),
+                    "kaggle_json": str(path),
+                    "max_running": 2,
+                }
+            )
         for path in sorted(Path("artifacts/secrets/kaggle_accounts").glob("*/kaggle.json")):
             accounts.append({"name": path.parent.name, "kaggle_json": str(path), "max_running": 2})
 
@@ -173,7 +181,8 @@ def run_kaggle(args: list[str], account: dict, run_root: Path, log_path: Path) -
     env = os.environ.copy()
     env["KAGGLE_CONFIG_DIR"] = str(runtime_config_dir)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    with log_path.open("a", encoding="utf-8") as log:
+    mode = "w" if args[:2] == ["kernels", "push"] else "a"
+    with log_path.open(mode, encoding="utf-8") as log:
         log.write(f"[{now_iso()}] kaggle {' '.join(args)}\n")
         log.flush()
         proc = subprocess.Popen(
@@ -186,7 +195,12 @@ def run_kaggle(args: list[str], account: dict, run_root: Path, log_path: Path) -
         assert proc.stdout is not None
         for line in proc.stdout:
             log.write(line)
-        return proc.wait()
+        rc = proc.wait()
+    if args[:2] == ["kernels", "push"]:
+        text = log_path.read_text(encoding="utf-8", errors="ignore")
+        if "Kernel push error:" in text:
+            return 1
+    return rc
 
 
 def build_kernel_metadata(job: dict, username: str, slug: str) -> dict:
@@ -231,7 +245,7 @@ def stage_kernel(run_root: Path, job: dict, account: dict) -> tuple[Path, str, s
     code_file = kernel_dir / metadata["code_file"]
     if code_file.is_file():
         text = code_file.read_text(encoding="utf-8")
-        embedded_config = json.dumps(job.get("job_config", {}), indent=2, sort_keys=True)
+        embedded_config = repr(job.get("job_config", {}))
         text = text.replace("EMBEDDED_JOB_CONFIG = None", f"EMBEDDED_JOB_CONFIG = {embedded_config}")
         code_file.write_text(text, encoding="utf-8")
     url = f"https://www.kaggle.com/code/{account['username']}/{slug}"
@@ -250,8 +264,20 @@ def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> Non
     state_job["expected_zip"] = job.get("expected_zip", f"{job_id}_result.zip")
     append_progress(run_root, f"submitting job={job_id} account={account['name']}")
     push_log = run_root / "jobs" / job_id / "push.log"
-    rc = run_kaggle(["kernels", "push", "-p", str(kernel_dir)], account, run_root, push_log)
+    push_args = ["kernels", "push", "-p", str(kernel_dir)]
+    if job.get("machine_shape"):
+        push_args.extend(["--accelerator", str(job["machine_shape"])])
+    rc = run_kaggle(push_args, account, run_root, push_log)
     if rc != 0:
+        text = push_log.read_text(encoding="utf-8", errors="ignore") if push_log.is_file() else ""
+        if "Maximum batch GPU session count" in text:
+            state_job["status"] = "queued"
+            state_job["account"] = ""
+            state_job["url"] = ""
+            state_job["slug"] = ""
+            state_job["failure_reason"] = ""
+            append_progress(run_root, f"queued job={job_id} reason=gpu_capacity")
+            return
         state_job["status"] = "failed"
         state_job["failure_reason"] = "kaggle kernels push failed"
         append_progress(run_root, f"failed job={job_id} reason=push")

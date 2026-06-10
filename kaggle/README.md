@@ -8,6 +8,9 @@ python scripts/generate_camopatch_kaggle_jobs.py --output kaggle/camopatch_jobs.
 
 This writes 171 CamoPatch B-cos jobs: 7 models, 3 patch sizes, 3 Linf budgets,
 and fixed `random`/`bcos_top1`/`gradcam` positions, excluding ViTC gradcam.
+Jobs are staged as offline Kaggle scripts with `machine_shape=NvidiaRtxPro6000`
+and the `nvidia-nemotron-model-reasoning-challenge` competition source, matching
+the Pro 6000 setup in `template__fixed.ipynb`.
 
 ## Accounts
 
@@ -17,6 +20,9 @@ Add an auxiliary runner account at:
 ```text
 kaggle_runs/accounts/aux/kaggle.json
 ```
+
+The scheduler also auto-discovers `artifacts/secrets/kaggle_*.json`; for example,
+`artifacts/secrets/kaggle_dora.json` is used as account `dora`.
 
 or pass an accounts file:
 

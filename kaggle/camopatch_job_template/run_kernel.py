@@ -2,15 +2,12 @@ from __future__ import annotations
 
 import json
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
 
 CODE_DATASET = "attack-bcos-github"
 CODE_OWNER = "hkhnhduy"
-DEFAULT_GITHUB_REPO = "https://github.com/voicon324/attack_bcos.git"
-DEFAULT_GITHUB_REF = "main"
 EMBEDDED_JOB_CONFIG = None
 
 
@@ -38,24 +35,10 @@ def find_repo() -> Path:
     if kaggle_input.is_dir():
         for candidate in sorted(kaggle_input.rglob("kaggle/camopatch_job/run_camopatch_job.py")):
             return candidate.parents[2]
-    return clone_repo(load_job_config())
-
-
-def clone_repo(config: dict) -> Path:
-    repo_url = str(config.get("github_repo", DEFAULT_GITHUB_REPO))
-    git_ref = str(config.get("github_ref", DEFAULT_GITHUB_REF))
-    work_repo = Path("/kaggle/working/attack_bcos")
-    if work_repo.exists():
-        shutil.rmtree(work_repo)
-    try:
-        subprocess.check_call(["git", "clone", "--depth", "1", "--branch", git_ref, repo_url, str(work_repo)])
-    except subprocess.CalledProcessError:
-        if work_repo.exists():
-            shutil.rmtree(work_repo)
-        subprocess.check_call(["git", "clone", "--depth", "1", repo_url, str(work_repo)])
-        subprocess.check_call(["git", "fetch", "--depth", "1", "origin", git_ref], cwd=str(work_repo))
-        subprocess.check_call(["git", "checkout", "FETCH_HEAD"], cwd=str(work_repo))
-    return work_repo
+    raise FileNotFoundError(
+        "Could not find attack-bcos code dataset under /kaggle/input. "
+        "Attach hkhnhduy/attack-bcos-github before running this kernel."
+    )
 
 
 def main() -> None:
