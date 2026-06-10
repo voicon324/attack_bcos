@@ -60,3 +60,5 @@ weights/
 vpnuser03-macos-windows.ovpn
 
 kaggle_results
+artifacts/secrets
+kaggle_runs/

@@ -1,0 +1,14 @@
+{
+  "accounts": [
+    {
+      "name": "main",
+      "kaggle_json": "artifacts/secrets/kaggle.json",
+      "max_running": 2
+    },
+    {
+      "name": "aux",
+      "kaggle_json": "kaggle_runs/accounts/aux/kaggle.json",
+      "max_running": 2
+    }
+  ]
+}

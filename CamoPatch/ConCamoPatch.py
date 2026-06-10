@@ -1,5 +1,5 @@
 from torchvision import transforms
-from ImageNetModels import ImageNetModel
+from ImageNetModels import ImageNetModel, canonical_bcos_model_name, canonical_torchvision_model_name
 from LossFunctions import UnTargeted
 import numpy as np
 import argparse
@@ -20,13 +20,12 @@ def parse_linf(value):
     return float(value)
 
 
-def describe_attack_model(model_idx, model_source):
-    model_names = {
-        ("bcos", 1): "bcos_resnet50",
-        ("torchvision", 0): "torchvision_vgg16_bn",
-        ("torchvision", 1): "torchvision_resnet50",
-    }
-    return model_names.get((model_source, model_idx), f"{model_source}_model_{model_idx}")
+def describe_attack_model(model_id, model_source):
+    if model_source == "bcos":
+        return f"bcos_{canonical_bcos_model_name(model_id)}"
+    if model_source == "torchvision":
+        return f"torchvision_{canonical_torchvision_model_name(model_id)}"
+    return f"{model_source}_model_{model_id}"
 
 
 def resolve_bcos_guide_model(model, model_idx, device):
@@ -92,7 +91,11 @@ if __name__ == "__main__":
     ])
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", help="0 or 1. With --model_source auto, 1 uses B-cos ResNet-50.", type=int, default=1)
+    parser.add_argument(
+        "--model",
+        help="B-cos/torchvision model name. Legacy indices still work: 1 is ResNet-50.",
+        default="1",
+    )
     parser.add_argument(
         "--model_source",
         choices=("auto", "bcos", "torchvision"),
@@ -208,6 +211,7 @@ if __name__ == "__main__":
         "attack_model": attack_model_name,
         "attack_model_source": attack_model_source,
         "attack_model_index": args.model,
+        "attack_model_name": model.model_name,
         "eval_batch_size": args.batch_size,
         "parallel_locations": args.parallel_locations,
         "fixed_location": args.fixed_bcos_position,

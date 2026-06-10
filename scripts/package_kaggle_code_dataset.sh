@@ -13,10 +13,8 @@ else
 fi
 
 KAGGLE_JSON="${KAGGLE_JSON:-$ROOT/artifacts/secrets/kaggle.json}"
-RAW_NAME="$(basename "$ROOT")"
-DEFAULT_SLUG="$(printf '%s' "$RAW_NAME" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
-DATASET_SLUG="${KAGGLE_DATASET_SLUG:-$DEFAULT_SLUG}"
-DATASET_TITLE="${KAGGLE_DATASET_TITLE:-$RAW_NAME}"
+DATASET_SLUG="${KAGGLE_DATASET_SLUG:-attack-bcos-github}"
+DATASET_TITLE="${KAGGLE_DATASET_TITLE:-attack-bcos-github}"
 KAGGLE_LICENSE="${KAGGLE_LICENSE:-CC0-1.0}"
 KAGGLE_IS_PRIVATE="${KAGGLE_IS_PRIVATE:-true}"
 KAGGLE_DIR_MODE="${KAGGLE_DIR_MODE:-zip}"
@@ -126,6 +124,7 @@ stage_extra_file "data/used_images_500.csv"
 stage_extra_file "data/used_images_500_1.csv"
 stage_extra_file "data/used_images_500_kaggle.csv"
 stage_extra_file "data/used_images_500_rel.csv"
+stage_extra_file "data/used_images_1000.csv"
 
 "$PYTHON_BIN" - "$STAGE_DIR/dataset-metadata.json" <<'PY'
 import json

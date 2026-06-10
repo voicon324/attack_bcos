@@ -10,6 +10,59 @@ from urllib.parse import urlparse
 
 DEFAULT_DEVICE = "cpu"
 
+LEGACY_TORCHVISION_MODEL_SPECS = [
+    ("vgg16_bn", torch_models.vgg16_bn, getattr(torch_models, "VGG16_BN_Weights", None)),
+    ("resnet50", torch_models.resnet50, getattr(torch_models, "ResNet50_Weights", None)),
+]
+
+BCOS_MODEL_ALIASES = {
+    "1": "resnet50",
+    "resnet_50": "resnet50",
+    "resnet50": "resnet50",
+    "resnet_18": "resnet18",
+    "resnet18": "resnet18",
+    "densenet_121": "densenet121",
+    "densenet121": "densenet121",
+    "convnext_tiny": "convnext_tiny",
+    "convnext_base": "convnext_base",
+    "vitc_s": "vitc_s_patch1_14",
+    "vitc_s_patch1_14": "vitc_s_patch1_14",
+    "vitc_b": "vitc_b_patch1_14",
+    "vitc_b_patch1_14": "vitc_b_patch1_14",
+}
+
+TORCHVISION_MODEL_ALIASES = {
+    "0": "vgg16_bn",
+    "1": "resnet50",
+    "vgg16_bn": "vgg16_bn",
+    "resnet50": "resnet50",
+    "resnet18": "resnet18",
+    "densenet121": "densenet121",
+    "convnext_tiny": "convnext_tiny",
+    "convnext_base": "convnext_base",
+}
+
+
+def _normalize_model_key(model):
+    key = str(model).strip().lower().replace("-", "_")
+    if not key:
+        raise ValueError("Model id/name must not be empty.")
+    return key
+
+
+def canonical_bcos_model_name(model):
+    key = _normalize_model_key(model)
+    try:
+        return BCOS_MODEL_ALIASES[key]
+    except KeyError as exc:
+        supported = ", ".join(sorted(BCOS_MODEL_ALIASES))
+        raise ValueError(f"Unsupported B-cos model '{model}'. Supported: {supported}") from exc
+
+
+def canonical_torchvision_model_name(model):
+    key = _normalize_model_key(model)
+    return TORCHVISION_MODEL_ALIASES.get(key, key)
+
 
 def _resolve_device(device):
     device = device or DEFAULT_DEVICE
@@ -112,14 +165,17 @@ def _format_torchvision_search_paths(weights):
     return "\n".join(f"  - {candidate}" for candidate in _iter_torchvision_weight_candidates(filename))
 
 
-def _load_torchvision_model(model_idx):
-    model_specs = [
-        (torch_models.vgg16_bn, getattr(torch_models, "VGG16_BN_Weights", None)),
-        (torch_models.resnet50, getattr(torch_models, "ResNet50_Weights", None)),
-    ]
-    if model_idx < 0 or model_idx >= len(model_specs):
-        raise ValueError(f"Unsupported model index {model_idx}; expected 0 or 1")
-    factory, weights_enum = model_specs[model_idx]
+def _load_torchvision_model(model):
+    key = _normalize_model_key(model)
+    if key.isdigit() and int(key) < len(LEGACY_TORCHVISION_MODEL_SPECS):
+        model_name, factory, weights_enum = LEGACY_TORCHVISION_MODEL_SPECS[int(key)]
+    else:
+        model_name = canonical_torchvision_model_name(model)
+        try:
+            weights_enum = torch_models.get_model_weights(model_name)
+            factory = lambda weights=None: torch_models.get_model(model_name, weights=weights)
+        except Exception as exc:
+            raise ValueError(f"Unsupported torchvision model '{model}'.") from exc
 
     if weights_enum is not None:
         weights = getattr(weights_enum, "IMAGENET1K_V1", weights_enum.DEFAULT)
@@ -153,29 +209,27 @@ def _ensure_bcos_importable():
     return bcos
 
 
-def _load_bcos_model(model_idx):
-    model_specs = {
-        1: "resnet50",
-    }
-    if model_idx not in model_specs:
-        raise ValueError("B-cos CamoPatch currently supports model index 1 only: resnet50")
-
+def _load_bcos_model(model):
     bcos = _ensure_bcos_importable()
-    model_name = model_specs[model_idx]
+    model_name = canonical_bcos_model_name(model)
     model_fn = getattr(bcos.pretrained, model_name)
     return model_fn(pretrained=True)
 
 
-def _load_pretrained_model(model_idx, model_source):
+def _load_pretrained_model(model, model_source):
     model_source = model_source.lower()
     if model_source == "auto":
-        if model_idx == 1:
-            return _load_bcos_model(model_idx), "bcos"
-        return _load_torchvision_model(model_idx), "torchvision"
+        key = _normalize_model_key(model)
+        if key in BCOS_MODEL_ALIASES:
+            return _load_bcos_model(model), "bcos", canonical_bcos_model_name(model)
+        model_name = canonical_torchvision_model_name(model)
+        return _load_torchvision_model(model), "torchvision", model_name
     if model_source == "bcos":
-        return _load_bcos_model(model_idx), "bcos"
+        model_name = canonical_bcos_model_name(model)
+        return _load_bcos_model(model), "bcos", model_name
     if model_source == "torchvision":
-        return _load_torchvision_model(model_idx), "torchvision"
+        model_name = canonical_torchvision_model_name(model)
+        return _load_torchvision_model(model), "torchvision", model_name
     raise ValueError("model_source must be one of: auto, bcos, torchvision")
 
 
@@ -206,9 +260,10 @@ def _as_batched_chw(x, device):
 
 
 class ImageNetModel:
-    def __init__(self, model: int, device=None, model_source="auto"):
+    def __init__(self, model, device=None, model_source="auto"):
         self.device = _resolve_device(device)
-        self.model, self.model_source = _load_pretrained_model(model, model_source)
+        self.model_id = str(model)
+        self.model, self.model_source, self.model_name = _load_pretrained_model(model, model_source)
         self.model = self.model.to(self.device)
         self.model.eval()
         self.mu = torch.tensor([0.485, 0.456, 0.406], device=self.device).float().view(1, 3, 1, 1)

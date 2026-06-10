@@ -338,7 +338,10 @@ def save_result(
     location_source: Optional[str],
     attack_model: str,
     attack_model_source: str,
-    attack_model_index: int,
+    attack_model_index: object,
+    attack_model_name: str,
+    patch_size: int,
+    position_rule: str,
     save_images: bool,
 ) -> None:
     save_prefix.parent.mkdir(parents=True, exist_ok=True)
@@ -355,6 +358,10 @@ def save_result(
         "attack_model": attack_model,
         "attack_model_source": attack_model_source,
         "attack_model_index": attack_model_index,
+        "attack_model_name": attack_model_name,
+        "model": attack_model_name,
+        "patch_size": int(patch_size),
+        "position_rule": position_rule,
         "fixed_location": bool(fixed_location),
         "location_source": location_source,
         "initial_loc": None if initial_loc is None else initial_loc.copy(),
@@ -467,6 +474,9 @@ def run_strict_one_plus_one_batch(
             attack_model=attack_model_name,
             attack_model_source=attack_model_source,
             attack_model_index=args.model,
+            attack_model_name=getattr(model, "model_name", str(args.model)),
+            patch_size=patch_size,
+            position_rule=args.position_rule,
             save_images=args.save_images,
         )
         rows.append(
@@ -475,6 +485,10 @@ def run_strict_one_plus_one_batch(
                 "image_path": args.current_image_paths[idx],
                 "output_prefix": str(save_prefixes[idx]),
                 "attack_model": attack_model_name,
+                "model": getattr(model, "model_name", str(args.model)),
+                "model_source": attack_model_source,
+                "patch_size": int(patch_size),
+                "position_rule": args.position_rule,
                 "true_label": int(true_labels[idx]),
                 "adversarial": int(bool(current_adv[idx])),
                 "final_prediction": int(final_pred[idx]),
@@ -510,7 +524,11 @@ def main() -> None:
     )
     parser.add_argument("--images_csv", "--images-csv", dest="images_csv", required=True)
     parser.add_argument("--save_root", "--save-root", dest="save_root", required=True)
-    parser.add_argument("--model", type=int, default=1)
+    parser.add_argument(
+        "--model",
+        default="1",
+        help="B-cos/torchvision model name. Legacy indices still work: 1 is ResNet-50.",
+    )
     parser.add_argument("--model_source", choices=("auto", "bcos", "torchvision"), default="bcos")
     parser.add_argument("--N", type=int, default=100)
     parser.add_argument("--temp", type=float, default=300.0)
