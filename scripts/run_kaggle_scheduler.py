@@ -254,6 +254,15 @@ def stage_kernel(run_root: Path, job: dict, account: dict) -> tuple[Path, str, s
 
 def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> None:
     job_id = job["job_id"]
+    job_root = run_root / "jobs" / job_id
+    output_dir = job_root / "output"
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_log = job_root / "output.log"
+    if output_log.exists():
+        output_log.unlink()
+    state_job.pop("result_zip", None)
+    state_job.pop("done_at", None)
     state_job["status"] = "submitting"
     state_job["account"] = account["name"]
     state_job["submitted_at"] = now_iso()
