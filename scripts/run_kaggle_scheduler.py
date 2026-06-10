@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
 import os
 import re
@@ -317,12 +319,44 @@ def find_expected_zip(output_dir: Path, expected_zip: str) -> Path | None:
     return matches[0] if matches else None
 
 
-def valid_zip(path: Path) -> bool:
+def count_csv_rows(path: Path) -> int | None:
+    if not path.is_file():
+        return None
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return sum(1 for _ in csv.DictReader(handle))
+
+
+def expected_summary_rows(job: dict) -> int | None:
+    images_csv = job.get("job_config", {}).get("images_csv")
+    if not images_csv:
+        return None
+    return count_csv_rows(Path(images_csv))
+
+
+def validate_result_zip(path: Path, expected_rows: int | None) -> tuple[bool, str]:
     try:
         with zipfile.ZipFile(path) as archive:
-            return archive.testzip() is None
+            bad_file = archive.testzip()
+            if bad_file is not None:
+                return False, f"bad zip entry: {bad_file}"
+            names = set(archive.namelist())
+            if "manifest.json" not in names:
+                return False, "missing manifest.json"
+            manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+            if int(manifest.get("return_code", -1)) != 0:
+                return False, f"manifest return_code={manifest.get('return_code')}"
+            if "outputs/summary.csv" not in names:
+                return False, "missing outputs/summary.csv"
+            if expected_rows is not None:
+                summary_text = archive.read("outputs/summary.csv").decode("utf-8")
+                actual_rows = sum(1 for _ in csv.DictReader(io.StringIO(summary_text)))
+                if actual_rows != expected_rows:
+                    return False, f"summary rows {actual_rows} != expected {expected_rows}"
+            return True, "ok"
     except zipfile.BadZipFile:
-        return False
+        return False, "bad zip file"
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError) as exc:
+        return False, f"invalid result metadata: {exc}"
 
 
 def log_has_fatal(output_dir: Path) -> bool:
@@ -369,16 +403,21 @@ def poll_job(run_root: Path, job: dict, state_job: dict, accounts_by_name: dict[
 
     expected_zip = state_job.get("expected_zip", f"{job_id}_result.zip")
     zip_path = find_expected_zip(output_dir, expected_zip)
-    if zip_path and valid_zip(zip_path):
+    expected_rows = expected_summary_rows(job)
+    if zip_path:
+        is_valid_zip, validation_reason = validate_result_zip(zip_path, expected_rows)
+    else:
+        is_valid_zip, validation_reason = False, ""
+    if zip_path and is_valid_zip:
         state_job["status"] = "done"
         state_job["done_at"] = now_iso()
         state_job["result_zip"] = str(zip_path)
         append_progress(run_root, f"done job={job_id}")
         return
-    if zip_path and not valid_zip(zip_path):
+    if zip_path and not is_valid_zip:
         state_job["status"] = "failed"
-        state_job["failure_reason"] = "invalid result zip"
-        append_progress(run_root, f"failed job={job_id} reason=invalid_zip")
+        state_job["failure_reason"] = f"invalid result zip: {validation_reason}"
+        append_progress(run_root, f"failed job={job_id} reason=invalid_zip detail={validation_reason}")
         return
     if log_has_fatal(output_dir):
         state_job["status"] = "failed"
