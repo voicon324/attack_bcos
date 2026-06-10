@@ -192,7 +192,7 @@ def run_kaggle(args: list[str], account: dict, run_root: Path, log_path: Path) -
 def build_kernel_metadata(job: dict, username: str, slug: str) -> dict:
     metadata = {
         "id": f"{username}/{slug}",
-        "title": job.get("title", job["job_id"]),
+        "title": slug,
         "code_file": job.get("code_file", "run_kernel.py"),
         "language": job.get("language", "python"),
         "kernel_type": job.get("kernel_type", "script"),
@@ -206,6 +206,14 @@ def build_kernel_metadata(job: dict, username: str, slug: str) -> dict:
     if job.get("machine_shape"):
         metadata["machine_shape"] = job["machine_shape"]
     return metadata
+
+
+def parse_kaggle_url(log_path: Path) -> str:
+    if not log_path.is_file():
+        return ""
+    text = log_path.read_text(encoding="utf-8", errors="ignore")
+    matches = re.findall(r"https://www\.kaggle\.com/code/\S+", text)
+    return matches[-1] if matches else ""
 
 
 def stage_kernel(run_root: Path, job: dict, account: dict) -> tuple[Path, str, str]:
@@ -235,16 +243,21 @@ def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> Non
     state_job["url"] = url
     state_job["expected_zip"] = job.get("expected_zip", f"{job_id}_result.zip")
     append_progress(run_root, f"submitting job={job_id} account={account['name']}")
-    rc = run_kaggle(["kernels", "push", "-p", str(kernel_dir)], account, run_root, run_root / "jobs" / job_id / "push.log")
+    push_log = run_root / "jobs" / job_id / "push.log"
+    rc = run_kaggle(["kernels", "push", "-p", str(kernel_dir)], account, run_root, push_log)
     if rc != 0:
         state_job["status"] = "failed"
         state_job["failure_reason"] = "kaggle kernels push failed"
         append_progress(run_root, f"failed job={job_id} reason=push")
         return
+    actual_url = parse_kaggle_url(push_log)
+    if actual_url:
+        state_job["url"] = actual_url
+        state_job["slug"] = actual_url.rstrip("/").rsplit("/", 1)[-1]
     state_job["status"] = "running"
     state_job["running_at"] = now_iso()
-    (run_root / "jobs" / job_id / "url.txt").write_text(url + "\n", encoding="utf-8")
-    append_progress(run_root, f"running job={job_id} url={url}")
+    (run_root / "jobs" / job_id / "url.txt").write_text(str(state_job["url"]) + "\n", encoding="utf-8")
+    append_progress(run_root, f"running job={job_id} url={state_job['url']}")
 
 
 def account_active_count(state: dict, account_name: str) -> int:
