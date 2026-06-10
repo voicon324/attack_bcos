@@ -19,6 +19,7 @@ DATASET_ID_NO="${KAGGLE_DATASET_ID_NO:-}"
 KAGGLE_LICENSE="${KAGGLE_LICENSE:-CC0-1.0}"
 KAGGLE_IS_PRIVATE="${KAGGLE_IS_PRIVATE:-true}"
 KAGGLE_DIR_MODE="${KAGGLE_DIR_MODE:-zip}"
+KAGGLE_RECREATE_INCOMPATIBLE="${KAGGLE_RECREATE_INCOMPATIBLE:-false}"
 VERSION_NOTE="${1:-sync $(date '+%Y-%m-%d %H:%M:%S')}"
 
 if [[ ! -f "$KAGGLE_JSON" ]]; then
@@ -141,14 +142,8 @@ stage_extra_file() {
     cp -a "$ROOT/$rel" "$STAGE_DIR/$rel"
 }
 
-stage_repo_files "$ROOT" ""
-stage_extra_file "data/used_images_500.csv"
-stage_extra_file "data/used_images_500_1.csv"
-stage_extra_file "data/used_images_500_kaggle.csv"
-stage_extra_file "data/used_images_500_rel.csv"
-stage_extra_file "data/used_images_1000.csv"
-
-"$PYTHON_BIN" - "$STAGE_DIR/dataset-metadata.json" <<'PY'
+write_dataset_metadata() {
+    "$PYTHON_BIN" - "$STAGE_DIR/dataset-metadata.json" <<'PY'
 import json
 import os
 import sys
@@ -166,6 +161,16 @@ with open(sys.argv[1], "w", encoding="utf-8") as f:
     json.dump(metadata, f, indent=2)
     f.write("\n")
 PY
+}
+
+stage_repo_files "$ROOT" ""
+stage_extra_file "data/used_images_500.csv"
+stage_extra_file "data/used_images_500_1.csv"
+stage_extra_file "data/used_images_500_kaggle.csv"
+stage_extra_file "data/used_images_500_rel.csv"
+stage_extra_file "data/used_images_1000.csv"
+
+write_dataset_metadata
 
 FILE_COUNT="$(find "$STAGE_DIR" -type f ! -name 'dataset-metadata.json' | wc -l | tr -d ' ')"
 TOTAL_SIZE="$(du -sh "$STAGE_DIR" | cut -f1)"
@@ -178,11 +183,13 @@ if [[ "$DRY_RUN" == "1" ]]; then
     exit 0
 fi
 
+LAST_KAGGLE_OUTPUT=""
 run_kaggle_write() {
     local log_file
     log_file="$(mktemp)"
     local rc=0
     "${KAGGLE_CMD[@]}" "$@" 2>&1 | tee "$log_file" || rc=$?
+    LAST_KAGGLE_OUTPUT="$(cat "$log_file")"
     if grep -qE 'Dataset (version )?creation error:' "$log_file"; then
         rc=1
     fi
@@ -191,7 +198,19 @@ run_kaggle_write() {
 }
 
 if [[ "$DATASET_EXISTS" == "1" ]]; then
-    run_kaggle_write datasets version -p "$STAGE_DIR" -m "$VERSION_NOTE" -r "$KAGGLE_DIR_MODE"
+    if ! run_kaggle_write datasets version -p "$STAGE_DIR" -m "$VERSION_NOTE" -r "$KAGGLE_DIR_MODE"; then
+        if grep -q 'Incompatible Dataset Type' <<<"$LAST_KAGGLE_OUTPUT" \
+            && [[ "$KAGGLE_RECREATE_INCOMPATIBLE" == "true" ]]; then
+            echo "Existing dataset has an incompatible type; deleting and recreating $DATASET_ID" >&2
+            "${KAGGLE_CMD[@]}" datasets delete -y "$DATASET_ID"
+            DATASET_ID_NO=""
+            export DATASET_ID_NO
+            write_dataset_metadata
+            run_kaggle_write datasets create -p "$STAGE_DIR" -r "$KAGGLE_DIR_MODE"
+        else
+            exit 1
+        fi
+    fi
 else
     run_kaggle_write datasets create -p "$STAGE_DIR" -r "$KAGGLE_DIR_MODE"
 fi
