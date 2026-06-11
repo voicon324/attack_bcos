@@ -256,7 +256,7 @@ def stage_kernel(run_root: Path, job: dict, account: dict) -> tuple[Path, str, s
     return kernel_dir, slug, url
 
 
-def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> None:
+def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> str:
     job_id = job["job_id"]
     job_root = run_root / "jobs" / job_id
     output_dir = job_root / "output"
@@ -290,11 +290,11 @@ def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> Non
             state_job["slug"] = ""
             state_job["failure_reason"] = ""
             append_progress(run_root, f"queued job={job_id} reason=gpu_capacity")
-            return
+            return "gpu_capacity"
         state_job["status"] = "failed"
         state_job["failure_reason"] = "kaggle kernels push failed"
         append_progress(run_root, f"failed job={job_id} reason=push")
-        return
+        return "failed"
     actual_url = parse_kaggle_url(push_log)
     if actual_url:
         state_job["url"] = actual_url
@@ -303,6 +303,7 @@ def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> Non
     state_job["running_at"] = now_iso()
     (run_root / "jobs" / job_id / "url.txt").write_text(str(state_job["url"]) + "\n", encoding="utf-8")
     append_progress(run_root, f"running job={job_id} url={state_job['url']}")
+    return "running"
 
 
 def account_active_count(state: dict, account_name: str) -> int:
@@ -394,6 +395,26 @@ def minutes_since(value: str) -> float:
     return (datetime.now(timezone.utc) - dt).total_seconds() / 60.0
 
 
+def iso_after_minutes(minutes: float) -> str:
+    return (
+        datetime.fromtimestamp(time.time() + minutes * 60, tz=timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+    )
+
+
+def is_future_iso(value: str) -> bool:
+    if not value:
+        return False
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return False
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt > datetime.now(timezone.utc)
+
+
 def poll_job(run_root: Path, job: dict, state_job: dict, accounts_by_name: dict[str, dict]) -> None:
     account = accounts_by_name.get(state_job.get("account", ""))
     if account is None:
@@ -456,20 +477,34 @@ def scheduler_loop(args: argparse.Namespace) -> None:
     accounts_by_name = {account["name"]: account for account in accounts}
     state_path = run_root / "state.json"
     state = load_json(state_path, {"jobs": {}})
+    state.setdefault("account_backoff_until", {})
 
     while True:
         jobs_by_id = load_jobs(args.jobs_config)
         ensure_jobs_in_state(state, jobs_by_id, run_root)
+        state.setdefault("account_backoff_until", {})
 
         for job_id, state_job in list(state.get("jobs", {}).items()):
             if state_job.get("status") in ACTIVE_STATUSES and job_id in jobs_by_id:
-                poll_job(run_root, jobs_by_id[job_id], state_job, accounts_by_name)
+                try:
+                    poll_job(run_root, jobs_by_id[job_id], state_job, accounts_by_name)
+                except Exception as exc:  # pragma: no cover - defensive long-run guard
+                    state_job["status"] = "running"
+                    state_job["failure_reason"] = f"poll exception: {exc}"
+                    append_progress(run_root, f"poll_exception job={job_id} detail={exc}")
                 save_json(state_path, state)
                 write_dashboard(run_root, state)
 
         submitted = 0
         if not args.poll_only:
             for account in accounts:
+                backoff_until = str(state["account_backoff_until"].get(account["name"], ""))
+                if is_future_iso(backoff_until):
+                    append_progress(
+                        run_root,
+                        f"skip_account account={account['name']} reason=gpu_capacity_until {backoff_until}",
+                    )
+                    continue
                 free_slots = int(account["max_running"]) - account_active_count(state, account["name"])
                 while free_slots > 0:
                     next_id = next(
@@ -482,7 +517,22 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                     )
                     if next_id is None:
                         break
-                    submit_job(run_root, jobs_by_id[next_id], state["jobs"][next_id], account)
+                    try:
+                        result = submit_job(run_root, jobs_by_id[next_id], state["jobs"][next_id], account)
+                    except Exception as exc:  # pragma: no cover - defensive long-run guard
+                        state["jobs"][next_id]["status"] = "queued"
+                        state["jobs"][next_id]["account"] = ""
+                        state["jobs"][next_id]["failure_reason"] = f"submit exception: {exc}"
+                        result = "exception"
+                        append_progress(run_root, f"submit_exception job={next_id} account={account['name']} detail={exc}")
+                    if result == "gpu_capacity":
+                        backoff_until = iso_after_minutes(float(args.account_cooldown_minutes))
+                        state["account_backoff_until"][account["name"]] = backoff_until
+                        append_progress(
+                            run_root,
+                            f"cooldown account={account['name']} until={backoff_until}",
+                        )
+                        break
                     submitted += 1
                     free_slots -= 1
                     save_json(state_path, state)
@@ -508,6 +558,12 @@ def main() -> None:
     parser.add_argument("--run-root", type=Path, default=Path("kaggle_runs"))
     parser.add_argument("--poll-interval", type=int, default=300)
     parser.add_argument("--max-submit", type=int, default=0, help="Maximum jobs to submit in this invocation. 0 = no cap.")
+    parser.add_argument(
+        "--account-cooldown-minutes",
+        type=float,
+        default=30.0,
+        help="Cooldown an account this long after Kaggle reports no free GPU sessions.",
+    )
     parser.add_argument("--poll-only", action="store_true")
     parser.add_argument("--once", action="store_true", help="Run one poll/submit cycle and exit.")
     parser.add_argument("--exit-when-done", action="store_true")
