@@ -62,6 +62,9 @@ Each Kaggle job writes `/kaggle/working/<job_id>_result.zip`. The zip contains
 under `kaggle_runs/`: `state.json`, `progress.log`, `dashboard.tsv`, staged
 kernels, push logs, downloaded outputs, and result zips.
 
+For Kaggle smoke tests only, a job config may set `limit_images` to run the
+first N rows from `images_csv`; omit it for the full 1000-image matrix jobs.
+
 ## Update Code Dataset
 
 After pushing code to GitHub, update the Kaggle code dataset:

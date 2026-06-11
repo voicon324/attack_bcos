@@ -652,6 +652,14 @@ def main() -> None:
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--image_batch_size", "--image-batch-size", dest="image_batch_size", type=int, default=8)
     parser.add_argument(
+        "--limit_images",
+        "--limit-images",
+        dest="limit_images",
+        type=int,
+        default=0,
+        help="Optional smoke-test limit. 0 means use every image in --images_csv.",
+    )
+    parser.add_argument(
         "--position_rule",
         "--position-rule",
         dest="position_rule",
@@ -678,6 +686,8 @@ def main() -> None:
 
     if args.image_batch_size <= 0:
         parser.error("--image_batch_size must be > 0")
+    if args.limit_images < 0:
+        parser.error("--limit_images must be >= 0")
     if args.fixed_bcos_position and args.position_rule not in (None, "margin"):
         parser.error("--fixed_bcos_position is an alias for --position-rule margin --fixed-position.")
     if args.init_bcos_position and args.position_rule not in (None, "margin"):
@@ -698,6 +708,10 @@ def main() -> None:
     save_root = Path(args.save_root)
     save_root.mkdir(parents=True, exist_ok=True)
     items = load_items_from_csv(Path(args.images_csv))
+    if args.limit_images:
+        items = items[:args.limit_images]
+        if not items:
+            parser.error("--limit_images removed every image from the run.")
 
     model = ImageNetModel(args.model, device=args.device, model_source=args.model_source)
     attack_model_source = model.model_source

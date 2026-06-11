@@ -300,6 +300,8 @@ def main() -> None:
     ]
     if "seed" in config:
         cmd.extend(["--seed", str(config["seed"])])
+    if int(config.get("limit_images", 0) or 0) > 0:
+        cmd.extend(["--limit-images", str(int(config["limit_images"]))])
 
     manifest = {
         "job_config": config,

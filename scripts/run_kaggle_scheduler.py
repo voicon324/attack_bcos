@@ -327,10 +327,15 @@ def count_csv_rows(path: Path) -> int | None:
 
 
 def expected_summary_rows(job: dict) -> int | None:
-    images_csv = job.get("job_config", {}).get("images_csv")
+    job_config = job.get("job_config", {})
+    images_csv = job_config.get("images_csv")
     if not images_csv:
         return None
-    return count_csv_rows(Path(images_csv))
+    rows = count_csv_rows(Path(images_csv))
+    limit_images = int(job_config.get("limit_images", 0) or 0)
+    if rows is not None and limit_images > 0:
+        return min(rows, limit_images)
+    return rows
 
 
 def validate_result_zip(path: Path, expected_rows: int | None) -> tuple[bool, str]:
