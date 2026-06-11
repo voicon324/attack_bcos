@@ -38,7 +38,23 @@ def read_manifest(archive: zipfile.ZipFile) -> dict[str, Any]:
 
 
 def read_summary_rows(archive: zipfile.ZipFile) -> list[dict[str, str]]:
-    name = find_zip_member(archive, "outputs/summary.csv") or find_zip_member(archive, "summary.csv")
+    return read_csv_rows(archive, "outputs/summary.csv", "summary.csv")
+
+
+def read_success_event_rows(archive: zipfile.ZipFile) -> list[dict[str, str]]:
+    return read_csv_rows(archive, "outputs/success_events.csv", "success_events.csv")
+
+
+def read_success_by_query_rows(archive: zipfile.ZipFile) -> list[dict[str, str]]:
+    return read_csv_rows(archive, "outputs/success_by_query.csv", "success_by_query.csv")
+
+
+def read_csv_rows(archive: zipfile.ZipFile, *suffixes: str) -> list[dict[str, str]]:
+    name = None
+    for suffix in suffixes:
+        name = find_zip_member(archive, suffix)
+        if name is not None:
+            break
     if name is None:
         return []
     with archive.open(name) as handle:
@@ -68,12 +84,14 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str] | No
         writer.writerows(rows)
 
 
-def aggregate(run_root: Path, jobs_config: Path, output_dir: Path) -> tuple[Path, Path, Path]:
+def aggregate(run_root: Path, jobs_config: Path, output_dir: Path) -> tuple[Path, Path, Path, Path, Path]:
     state = load_json(run_root / "state.json", {"jobs": {}})
     jobs_data = load_json(jobs_config, {"jobs": []})
     jobs_by_id = {str(job["job_id"]): job for job in jobs_data.get("jobs", [])}
 
     detail_rows: list[dict[str, Any]] = []
+    success_event_rows: list[dict[str, Any]] = []
+    success_by_query_rows: list[dict[str, Any]] = []
     job_rows: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
 
@@ -122,8 +140,28 @@ def aggregate(run_root: Path, jobs_config: Path, output_dir: Path) -> tuple[Path
                     continue
                 manifest = read_manifest(archive)
                 rows = read_summary_rows(archive)
+                has_success_events = find_zip_member(archive, "outputs/success_events.csv") is not None
+                has_success_by_query = find_zip_member(archive, "outputs/success_by_query.csv") is not None
+                events = read_success_event_rows(archive)
+                by_query = read_success_by_query_rows(archive)
         except (OSError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
             job_status["failure_reason"] = f"zip read error: {exc}"
+            failures.append(dict(job_status))
+            job_rows.append(job_status)
+            continue
+
+        if rows and "first_success_query" not in rows[0]:
+            job_status["failure_reason"] = "summary missing first_success_query"
+            failures.append(dict(job_status))
+            job_rows.append(job_status)
+            continue
+        if not has_success_events:
+            job_status["failure_reason"] = "missing success_events.csv"
+            failures.append(dict(job_status))
+            job_rows.append(job_status)
+            continue
+        if not has_success_by_query:
+            job_status["failure_reason"] = "missing success_by_query.csv"
             failures.append(dict(job_status))
             job_rows.append(job_status)
             continue
@@ -145,6 +183,10 @@ def aggregate(run_root: Path, jobs_config: Path, output_dir: Path) -> tuple[Path
         }
         for row in rows:
             detail_rows.append({**metadata, **row})
+        for row in events:
+            success_event_rows.append({**metadata, **row})
+        for row in by_query:
+            success_by_query_rows.append({**metadata, **row})
 
         job_status["rows"] = len(rows)
         job_status["adversarial"] = sum(int(row.get("adversarial", 0) or 0) for row in rows)
@@ -163,12 +205,16 @@ def aggregate(run_root: Path, jobs_config: Path, output_dir: Path) -> tuple[Path
 
     output_dir.mkdir(parents=True, exist_ok=True)
     detail_path = output_dir / "camopatch_summary.csv"
+    success_events_path = output_dir / "camopatch_success_events.csv"
+    success_by_query_path = output_dir / "camopatch_success_by_query.csv"
     job_path = output_dir / "camopatch_job_summary.csv"
     failures_path = output_dir / "camopatch_aggregate_failures.json"
     write_csv(detail_path, detail_rows)
+    write_csv(success_events_path, success_event_rows)
+    write_csv(success_by_query_path, success_by_query_rows)
     write_csv(job_path, job_rows)
     failures_path.write_text(json.dumps(failures, indent=2) + "\n", encoding="utf-8")
-    return detail_path, job_path, failures_path
+    return detail_path, success_events_path, success_by_query_path, job_path, failures_path
 
 
 def main() -> None:
@@ -178,8 +224,14 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_RUN_ROOT / "aggregate")
     args = parser.parse_args()
 
-    detail_path, job_path, failures_path = aggregate(args.run_root, args.jobs_config, args.output_dir)
+    detail_path, success_events_path, success_by_query_path, job_path, failures_path = aggregate(
+        args.run_root,
+        args.jobs_config,
+        args.output_dir,
+    )
     print(f"summary_csv={detail_path}")
+    print(f"success_events_csv={success_events_path}")
+    print(f"success_by_query_csv={success_by_query_path}")
     print(f"job_summary_csv={job_path}")
     print(f"failures_json={failures_path}")
 

@@ -52,9 +52,15 @@ python scripts/run_kaggle_scheduler.py \
   --accounts-config kaggle/accounts.example.json
 ```
 
-Scheduler state is written under `kaggle_runs/`: `state.json`,
-`progress.log`, `dashboard.tsv`, staged kernels, push logs, downloaded outputs,
-and result zips.
+Each Kaggle job writes `/kaggle/working/<job_id>_result.zip`. The zip contains
+`outputs/summary.csv`, `outputs/success_events.csv`,
+`outputs/success_by_query.csv`, per-image `.npy` files, `manifest.json`, and
+`run.log`. `summary.csv` has one row per image, including
+`first_success_query` plus final patch coordinates
+`patch_position_y`, `patch_position_x`, `patch_position_h`, and
+`patch_position_w` on the saved adversarial image. Scheduler state is written
+under `kaggle_runs/`: `state.json`, `progress.log`, `dashboard.tsv`, staged
+kernels, push logs, downloaded outputs, and result zips.
 
 ## Update Code Dataset
 

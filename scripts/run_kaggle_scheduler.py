@@ -347,9 +347,16 @@ def validate_result_zip(path: Path, expected_rows: int | None) -> tuple[bool, st
                 return False, f"manifest return_code={manifest.get('return_code')}"
             if "outputs/summary.csv" not in names:
                 return False, "missing outputs/summary.csv"
+            if "outputs/success_events.csv" not in names:
+                return False, "missing outputs/success_events.csv"
+            if "outputs/success_by_query.csv" not in names:
+                return False, "missing outputs/success_by_query.csv"
             if expected_rows is not None:
                 summary_text = archive.read("outputs/summary.csv").decode("utf-8")
-                actual_rows = sum(1 for _ in csv.DictReader(io.StringIO(summary_text)))
+                reader = csv.DictReader(io.StringIO(summary_text))
+                if "first_success_query" not in (reader.fieldnames or []):
+                    return False, "summary missing first_success_query"
+                actual_rows = sum(1 for _ in reader)
                 if actual_rows != expected_rows:
                     return False, f"summary rows {actual_rows} != expected {expected_rows}"
             return True, "ok"

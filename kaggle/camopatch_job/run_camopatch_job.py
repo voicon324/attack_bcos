@@ -211,6 +211,29 @@ def write_manifest(path: Path, manifest: dict) -> None:
         handle.write("\n")
 
 
+def validate_output_contract(result_dir: Path) -> list[str]:
+    missing: list[str] = []
+    summary_path = result_dir / "summary.csv"
+    success_events_path = result_dir / "success_events.csv"
+    success_by_query_path = result_dir / "success_by_query.csv"
+    for path in (summary_path, success_events_path, success_by_query_path):
+        if not path.is_file():
+            missing.append(str(path.name))
+    if summary_path.is_file():
+        with summary_path.open("r", encoding="utf-8", newline="") as handle:
+            fieldnames = csv.DictReader(handle).fieldnames or []
+        for name in (
+            "first_success_query",
+            "patch_position_y",
+            "patch_position_x",
+            "patch_position_h",
+            "patch_position_w",
+        ):
+            if name not in fieldnames:
+                missing.append(f"summary column {name}")
+    return missing
+
+
 def zip_result(zip_path: Path, run_dir: Path, result_dir: Path, extra_files: Iterable[Path]) -> None:
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for file_path in sorted(result_dir.rglob("*")):
@@ -294,6 +317,11 @@ def main() -> None:
     manifest["finished_at"] = now_iso()
     manifest["elapsed_sec"] = round(time.time() - started, 3)
     manifest["return_code"] = return_code
+    missing_outputs = validate_output_contract(result_dir) if return_code == 0 else []
+    if missing_outputs:
+        manifest["failure_reason"] = "missing output contract: " + ", ".join(missing_outputs)
+        manifest["return_code"] = 2
+        return_code = 2
     write_manifest(manifest_path, manifest)
 
     zip_result(zip_path, run_dir, result_dir, [run_log, manifest_path])

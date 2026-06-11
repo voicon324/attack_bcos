@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import math
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -333,6 +334,7 @@ def save_result(
     patch_geno: np.ndarray,
     true_label: int,
     final_prediction: int,
+    first_success_query: Optional[int],
     eps_linf: Optional[float],
     fixed_location: bool,
     location_source: Optional[str],
@@ -366,6 +368,11 @@ def save_result(
         "location_source": location_source,
         "initial_loc": None if initial_loc is None else initial_loc.copy(),
         "true_label": int(true_label),
+        "first_success_query": None if first_success_query is None else int(first_success_query),
+        "patch_position_y": int(loc[0]),
+        "patch_position_x": int(loc[1]),
+        "patch_position_h": int(patch.shape[0]),
+        "patch_position_w": int(patch.shape[1]),
         "final_l2": l2(patch, orig_patch),
         "final_linf": linf(patch, orig_patch),
         "final_prediction": int(final_prediction),
@@ -402,9 +409,11 @@ def run_strict_one_plus_one_batch(
     x_adv = apply_patches_to_batch(x_batch, patches, locs)
     current_adv, current_loss, current_pred = evaluate_batch(model, x_adv, true_labels)
     current_l2 = patch_l2_batch(x_batch, patches, locs)
+    first_success_query = np.where(current_adv, 1, 0).astype(np.int64)
 
     patch_counter = 0
     for query in tqdm(range(1, args.queries), desc="strict (1+1)-ES"):
+        previous_adv = current_adv.copy()
         patch_counter += 1
         if args.fixed_position or patch_counter < args.li:
             candidate_genos = np.stack([mutate(patch_genos[idx], args.mut) for idx in range(batch_size)], axis=0)
@@ -451,8 +460,13 @@ def run_strict_one_plus_one_batch(
         current_loss[accepted] = candidate_loss[accepted]
         current_pred[accepted] = candidate_pred[accepted]
         current_l2[accepted] = candidate_l2[accepted]
+        new_success = (~previous_adv) & current_adv & (first_success_query == 0)
+        first_success_query[new_success] = query + 1
 
-    _, _, final_pred = evaluate_batch(model, x_adv, true_labels)
+    final_adv, _, final_pred = evaluate_batch(model, x_adv, true_labels)
+    final_new_success = final_adv & (first_success_query == 0)
+    first_success_query[final_new_success] = args.queries
+    current_adv = final_adv
     final_linf = patch_linf_batch(x_batch, patches, locs)
     rows: List[Dict[str, object]] = []
     for idx in range(batch_size):
@@ -468,6 +482,11 @@ def run_strict_one_plus_one_batch(
             patch_geno=patch_genos[idx],
             true_label=int(true_labels[idx]),
             final_prediction=int(final_pred[idx]),
+            first_success_query=(
+                int(first_success_query[idx])
+                if int(first_success_query[idx]) > 0 and bool(current_adv[idx])
+                else None
+            ),
             eps_linf=args.linf,
             fixed_location=args.fixed_position,
             location_source=args.location_source,
@@ -491,10 +510,19 @@ def run_strict_one_plus_one_batch(
                 "position_rule": args.position_rule,
                 "true_label": int(true_labels[idx]),
                 "adversarial": int(bool(current_adv[idx])),
+                "first_success_query": (
+                    int(first_success_query[idx])
+                    if int(first_success_query[idx]) > 0 and bool(current_adv[idx])
+                    else ""
+                ),
                 "final_prediction": int(final_pred[idx]),
                 "queries": int(args.queries),
                 "loc_y": int(locs[idx, 0]),
                 "loc_x": int(locs[idx, 1]),
+                "patch_position_y": int(locs[idx, 0]),
+                "patch_position_x": int(locs[idx, 1]),
+                "patch_position_h": int(patch_size),
+                "patch_position_w": int(patch_size),
                 "initial_loc_y": "" if saved_initial_locs[idx] is None else int(saved_initial_locs[idx][0]),
                 "initial_loc_x": "" if saved_initial_locs[idx] is None else int(saved_initial_locs[idx][1]),
                 "fixed_location": int(args.fixed_position),
@@ -507,15 +535,99 @@ def run_strict_one_plus_one_batch(
     return rows
 
 
-def write_summary(summary_path: Path, rows: List[Dict[str, object]]) -> None:
-    if not rows:
-        return
-    summary_path.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = list(rows[0].keys())
-    with summary_path.open("w", newline="") as handle:
+def write_csv_rows(path: Path, rows: List[Dict[str, object]], fieldnames: List[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
+
+
+def write_summary(summary_path: Path, rows: List[Dict[str, object]]) -> None:
+    if not rows:
+        return
+    write_csv_rows(summary_path, rows, list(rows[0].keys()))
+
+
+def _success_query(row: Dict[str, object]) -> Optional[int]:
+    value = row.get("first_success_query", "")
+    if value in ("", None):
+        return None
+    try:
+        query = int(float(value))
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(query) or query <= 0:
+        return None
+    return query
+
+
+def write_success_tables(save_root: Path, rows: List[Dict[str, object]]) -> None:
+    event_fieldnames = [
+        "first_success_query",
+        "index",
+        "image_path",
+        "output_prefix",
+        "attack_model",
+        "model",
+        "model_source",
+        "patch_size",
+        "position_rule",
+        "true_label",
+        "final_prediction",
+        "queries",
+        "loc_y",
+        "loc_x",
+        "patch_position_y",
+        "patch_position_x",
+        "patch_position_h",
+        "patch_position_w",
+        "fixed_location",
+        "location_source",
+        "eps_linf",
+    ]
+    events: List[Dict[str, object]] = []
+    for row in rows:
+        if int(row.get("adversarial", 0) or 0) != 1:
+            continue
+        query = _success_query(row)
+        if query is None:
+            continue
+        event = {name: row.get(name, "") for name in event_fieldnames}
+        event["first_success_query"] = query
+        events.append(event)
+    events.sort(key=lambda item: (int(item["first_success_query"]), int(item["index"])))
+    write_csv_rows(save_root / "success_events.csv", events, event_fieldnames)
+
+    grouped: Dict[int, List[Dict[str, object]]] = {}
+    for event in events:
+        grouped.setdefault(int(event["first_success_query"]), []).append(event)
+
+    by_query_rows: List[Dict[str, object]] = []
+    cumulative = 0
+    for query in sorted(grouped):
+        query_events = grouped[query]
+        cumulative += len(query_events)
+        by_query_rows.append(
+            {
+                "first_success_query": query,
+                "new_successes": len(query_events),
+                "cumulative_successes": cumulative,
+                "image_indices": ";".join(str(event["index"]) for event in query_events),
+                "image_paths": ";".join(str(event["image_path"]) for event in query_events),
+            }
+        )
+    write_csv_rows(
+        save_root / "success_by_query.csv",
+        by_query_rows,
+        [
+            "first_success_query",
+            "new_successes",
+            "cumulative_successes",
+            "image_indices",
+            "image_paths",
+        ],
+    )
 
 
 def main() -> None:
@@ -661,6 +773,7 @@ def main() -> None:
         )
         all_rows.extend(rows)
         write_summary(save_root / "summary.csv", all_rows)
+        write_success_tables(save_root, all_rows)
         successes = sum(int(row["adversarial"]) for row in all_rows)
         print(f"Summary so far: {successes}/{len(all_rows)} successful attacks")
 
