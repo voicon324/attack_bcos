@@ -60,7 +60,9 @@ def sanitize_slug(value: str) -> str:
 def short_slug(job_id: str) -> str:
     slug = sanitize_slug(job_id)
     slug = slug.replace("camopatch-bcos-", "cb-")
-    return slug[:45].strip("-")
+    # Kaggle rejects long kernel slugs with a generic 400. Leave room for
+    # "-<timestamp>" appended by stage_kernel.
+    return slug[:39].strip("-")
 
 
 def read_kaggle_username(kaggle_json: Path) -> str:
