@@ -23,6 +23,10 @@ urls = [
     "https://github.com/B-cos/B-cos-v2/releases/download/v0.0.1-weights/densenet_161-9e9ea51353.pth",
     "https://github.com/B-cos/B-cos-v2/releases/download/v0.0.1-weights/densenet_169-7037ee0604.pth",
     "https://github.com/B-cos/B-cos-v2/releases/download/v0.0.1-weights/densenet_201-00ac87066f.pth",
+    "https://github.com/B-cos/B-cos-v2/releases/download/v0.0.1-weights/convnext_tiny_pn-539b1bfb37.pth",
+    "https://github.com/B-cos/B-cos-v2/releases/download/v0.0.1-weights/convnext_base_pn-b0495852c6.pth",
+    "https://github.com/B-cos/B-cos-v2/releases/download/v0.0.1-weights/bcos_vitc_s_patch1_14-cf55c88f0c.pth",
+    "https://github.com/B-cos/B-cos-v2/releases/download/v0.0.1-weights/bcos_vitc_b_patch1_14-a13c46397b.pth",
 ]
 
 out_dir = Path(sys.argv[1])
