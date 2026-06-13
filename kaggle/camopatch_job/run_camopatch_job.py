@@ -28,6 +28,25 @@ def now_iso() -> str:
 def load_config(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         config = json.load(handle)
+    if "bundle_jobs" in config:
+        if not config.get("job_id"):
+            raise ValueError(f"{path} bundle config is missing required key: job_id")
+        bundle_jobs = config.get("bundle_jobs")
+        if not isinstance(bundle_jobs, list) or not bundle_jobs:
+            raise ValueError(f"{path} bundle config must contain a non-empty bundle_jobs list.")
+        for idx, job in enumerate(bundle_jobs, start=1):
+            if not isinstance(job, dict):
+                raise ValueError(f"{path} bundle_jobs[{idx}] must be an object.")
+            missing = [
+                name
+                for name in ("job_id", "model", "patch_size", "linf", "position", "queries")
+                if name not in job
+            ]
+            if missing:
+                raise ValueError(
+                    f"{path} bundle_jobs[{idx}] is missing required keys: {', '.join(missing)}"
+                )
+        return config
     required = ["job_id", "model", "patch_size", "linf", "position", "queries"]
     missing = [name for name in required if name not in config]
     if missing:
@@ -244,12 +263,83 @@ def zip_result(zip_path: Path, run_dir: Path, result_dir: Path, extra_files: Ite
                 archive.write(file_path, file_path.relative_to(run_dir))
 
 
+def safe_filename(value: str) -> str:
+    return "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in value).strip("._") or "job"
+
+
+def write_bundle_zip(zip_path: Path, run_dir: Path, extra_files: Iterable[Path]) -> None:
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for file_path in extra_files:
+            if file_path.is_file():
+                archive.write(file_path, file_path.relative_to(run_dir))
+
+
+def run_bundle(config: dict) -> int:
+    bundle_id = str(config["job_id"])
+    run_dir = Path("/kaggle/working") / bundle_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = run_dir / "bundle_manifest.json"
+    zip_path = Path("/kaggle/working") / f"{bundle_id}_bundle_result.zip"
+    repo = prepare_work_repo(config)
+    runner = Path(__file__).resolve()
+    started = time.time()
+    results: list[dict[str, object]] = []
+
+    manifest = {
+        "job_id": bundle_id,
+        "bundle": True,
+        "bundle_size": len(config["bundle_jobs"]),
+        "started_at": now_iso(),
+        "repo": str(repo),
+        "results": results,
+    }
+    write_manifest(manifest_path, manifest)
+
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
+    for idx, sub_config in enumerate(config["bundle_jobs"], start=1):
+        sub_config = dict(sub_config)
+        sub_job_id = str(sub_config["job_id"])
+        sub_config_path = run_dir / f"{idx:02d}_{safe_filename(sub_job_id)}_job_config.json"
+        write_manifest(sub_config_path, sub_config)
+        sub_started = time.time()
+        sub_result = {
+            "index": idx,
+            "job_id": sub_job_id,
+            "config": str(sub_config_path),
+            "started_at": now_iso(),
+            "result_zip": f"/kaggle/working/{sub_job_id}_result.zip",
+        }
+        results.append(sub_result)
+        write_manifest(manifest_path, manifest)
+        return_code = subprocess.call(
+            [sys.executable, "-u", str(runner), "--config", str(sub_config_path)],
+            cwd=str(repo),
+            env=env,
+        )
+        sub_result["finished_at"] = now_iso()
+        sub_result["elapsed_sec"] = round(time.time() - sub_started, 3)
+        sub_result["return_code"] = return_code
+        write_manifest(manifest_path, manifest)
+
+    manifest["finished_at"] = now_iso()
+    manifest["elapsed_sec"] = round(time.time() - started, 3)
+    manifest["return_code"] = 0
+    write_manifest(manifest_path, manifest)
+    write_bundle_zip(zip_path, run_dir, [manifest_path, *sorted(run_dir.glob("*_job_config.json"))])
+    print(f"Bundle result zip: {zip_path}")
+    return 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run one CamoPatch Kaggle matrix job.")
     parser.add_argument("--config", type=Path, default=Path(DEFAULT_CONFIG))
     args = parser.parse_args()
 
     config = load_config(args.config)
+    if "bundle_jobs" in config:
+        raise SystemExit(run_bundle(config))
+
     job_id = str(config["job_id"])
     run_dir = Path("/kaggle/working") / job_id
     run_dir.mkdir(parents=True, exist_ok=True)

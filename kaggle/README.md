@@ -52,6 +52,23 @@ python scripts/run_kaggle_scheduler.py \
   --accounts-config kaggle/accounts.example.json
 ```
 
+Tail bundle mode, for accounts with only a few GPU quota hours left:
+
+```bash
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config kaggle/camopatch_jobs.json \
+  --bundle-target-hours 9.5 \
+  --bundle-max-jobs 5
+```
+
+Bundle mode still records each condition as its own job in `state.json` and on
+the dashboard. The scheduler submits one Kaggle kernel containing multiple
+queued jobs from the same model, then the Kaggle runner executes them
+sequentially and writes one result zip per original job. Use this manually when
+Kaggle shows an account has less than roughly 4h of regular GPU quota left; the
+Kaggle CLI does not expose a reliable per-account remaining quota value to the
+local scheduler.
+
 Each Kaggle job writes `/kaggle/working/<job_id>_result.zip`. The zip contains
 `outputs/summary.csv`, `outputs/success_events.csv`,
 `outputs/success_by_query.csv`, per-image `.npy` files, `manifest.json`, and

@@ -35,6 +35,15 @@ DEFAULT_DATASET_SOURCES = [
     "hkhnhduy/weights-bcos",
     "sautkin/imagenet1kvalid",
 ]
+DEFAULT_BUNDLE_ESTIMATE_HOURS = {
+    "resnet18": 1.9,
+    "resnet50": 3.1,
+    "densenet121": 3.2,
+    "convnext_tiny": 3.3,
+    "convnext_base": 3.8,
+    "vitc_s": 2.7,
+    "vitc_b": 3.6,
+}
 
 
 def now_iso() -> str:
@@ -263,6 +272,8 @@ def requeue_after_push_backoff(run_root: Path, state_job: dict, job_id: str, rea
     state_job["url"] = ""
     state_job["slug"] = ""
     state_job["failure_reason"] = ""
+    for key in ("bundle_id", "bundle_index", "bundle_size"):
+        state_job.pop(key, None)
     append_progress(run_root, f"queued job={job_id} reason={reason}")
     return reason
 
@@ -300,6 +311,8 @@ def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> str
         output_log.unlink()
     state_job.pop("result_zip", None)
     state_job.pop("done_at", None)
+    for key in ("bundle_id", "bundle_index", "bundle_size"):
+        state_job.pop(key, None)
     state_job["status"] = "submitting"
     state_job["account"] = account["name"]
     state_job["submitted_at"] = now_iso()
@@ -334,12 +347,176 @@ def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> str
     return "running"
 
 
-def account_active_count(state: dict, account_name: str) -> int:
-    return sum(
-        1
-        for job in state.get("jobs", {}).values()
-        if job.get("account") == account_name and job.get("status") in ACTIVE_STATUSES
+def job_model(job: dict) -> str:
+    return str(job.get("job_config", {}).get("model", ""))
+
+
+def estimated_job_hours(job: dict) -> float:
+    job_config = job.get("job_config", {})
+    value = job.get("estimated_hours", job_config.get("estimated_hours"))
+    if value is not None:
+        try:
+            return max(0.1, float(value))
+        except (TypeError, ValueError):
+            pass
+    return DEFAULT_BUNDLE_ESTIMATE_HOURS.get(job_model(job), 3.0)
+
+
+def select_bundle_job_ids(
+    state: dict,
+    jobs_by_id: dict[str, dict],
+    first_id: str,
+    target_hours: float,
+    max_jobs: int,
+) -> list[str]:
+    if target_hours <= 0 or max_jobs <= 1:
+        return [first_id]
+    first_job = jobs_by_id[first_id]
+    model = job_model(first_job)
+    selected: list[str] = []
+    total_hours = 0.0
+    for job_id, state_job in state.get("jobs", {}).items():
+        if state_job.get("status") != "queued" or job_id not in jobs_by_id:
+            continue
+        job = jobs_by_id[job_id]
+        if job_model(job) != model:
+            continue
+        estimate = estimated_job_hours(job)
+        if selected and (total_hours + estimate) > target_hours:
+            break
+        selected.append(job_id)
+        total_hours += estimate
+        if len(selected) >= max_jobs:
+            break
+    return selected or [first_id]
+
+
+def bundle_job_id(job_ids: list[str]) -> str:
+    first = sanitize_slug(job_ids[0].removeprefix("camopatch-bcos-"))
+    return f"bundle-{first[:30]}-n{len(job_ids)}-{int(time.time())}"
+
+
+def make_bundle_job(bundle_id: str, bundle_jobs: list[dict]) -> dict:
+    first = bundle_jobs[0]
+    first_config = first.get("job_config", {})
+    estimated_hours = sum(estimated_job_hours(job) for job in bundle_jobs)
+    return {
+        "job_id": bundle_id,
+        "title": f"CamoPatch bundle {len(bundle_jobs)} jobs",
+        "template_dir": first.get("template_dir", "kaggle/camopatch_job_template"),
+        "code_file": first.get("code_file", "run_kernel.py"),
+        "kernel_type": first.get("kernel_type", "script"),
+        "language": first.get("language", "python"),
+        "enable_gpu": bool(first.get("enable_gpu", True)),
+        "enable_internet": bool(first.get("enable_internet", False)),
+        "machine_shape": first.get("machine_shape"),
+        "is_private": bool(first.get("is_private", True)),
+        "dataset_sources": first.get("dataset_sources", DEFAULT_DATASET_SOURCES),
+        "competition_sources": first.get("competition_sources", []),
+        "kernel_sources": first.get("kernel_sources", []),
+        "output_pattern": ".*(zip|log|json|csv)$",
+        "expected_zip": f"{bundle_id}_bundle_result.zip",
+        "timeout_minutes": max(720, int((estimated_hours + 2.0) * 60)),
+        "job_config": {
+            "job_id": bundle_id,
+            "bundle": True,
+            "bundle_size": len(bundle_jobs),
+            "estimated_hours": round(estimated_hours, 3),
+            "code_dataset_owner": first_config.get("code_dataset_owner", "hkhnhduy"),
+            "code_dataset_slug": first_config.get("code_dataset_slug", "attack-bcos-github"),
+            "bundle_jobs": [dict(job.get("job_config", {})) for job in bundle_jobs],
+        },
+    }
+
+
+def submit_bundle(
+    run_root: Path,
+    jobs_by_id: dict[str, dict],
+    state: dict,
+    job_ids: list[str],
+    account: dict,
+) -> str:
+    if len(job_ids) == 1:
+        job_id = job_ids[0]
+        return submit_job(run_root, jobs_by_id[job_id], state["jobs"][job_id], account)
+
+    bundle_id = bundle_job_id(job_ids)
+    bundle_jobs = [jobs_by_id[job_id] for job_id in job_ids]
+    bundle = make_bundle_job(bundle_id, bundle_jobs)
+    bundle_root = run_root / "bundles" / bundle_id
+    output_dir = bundle_root / "output"
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    bundle_root.mkdir(parents=True, exist_ok=True)
+
+    submitted_at = now_iso()
+    for idx, job_id in enumerate(job_ids, start=1):
+        state_job = state["jobs"][job_id]
+        state_job.pop("result_zip", None)
+        state_job.pop("done_at", None)
+        state_job["status"] = "submitting"
+        state_job["account"] = account["name"]
+        state_job["submitted_at"] = submitted_at
+        state_job["tries"] = int(state_job.get("tries", 0)) + 1
+        state_job["bundle_id"] = bundle_id
+        state_job["bundle_index"] = idx
+        state_job["bundle_size"] = len(job_ids)
+        state_job["expected_zip"] = jobs_by_id[job_id].get("expected_zip", f"{job_id}_result.zip")
+        state_job["failure_reason"] = ""
+
+    kernel_dir, slug, url = stage_kernel(run_root, bundle, account)
+    for job_id in job_ids:
+        state["jobs"][job_id]["slug"] = slug
+        state["jobs"][job_id]["url"] = url
+    append_progress(
+        run_root,
+        f"submitting_bundle bundle={bundle_id} account={account['name']} jobs={','.join(job_ids)}",
     )
+    push_log = run_root / "jobs" / bundle_id / "push.log"
+    push_args = ["kernels", "push", "-p", str(kernel_dir)]
+    if bundle.get("machine_shape"):
+        push_args.extend(["--accelerator", str(bundle["machine_shape"])])
+    rc = run_kaggle(push_args, account, run_root, push_log)
+    if rc != 0:
+        text = push_log.read_text(encoding="utf-8", errors="ignore") if push_log.is_file() else ""
+        push_failure = classify_push_failure(text)
+        if push_failure in {"gpu_capacity", "gpu_quota", "competition_rules"}:
+            for job_id in job_ids:
+                requeue_after_push_backoff(run_root, state["jobs"][job_id], job_id, push_failure)
+            return push_failure
+        for job_id in job_ids:
+            state_job = state["jobs"][job_id]
+            state_job["status"] = "failed"
+            state_job["failure_reason"] = "kaggle bundle push failed"
+        append_progress(run_root, f"failed_bundle bundle={bundle_id} reason=push")
+        return "failed"
+
+    actual_url = parse_kaggle_url(push_log)
+    if actual_url:
+        url = actual_url
+        slug = actual_url.rstrip("/").rsplit("/", 1)[-1]
+    running_at = now_iso()
+    for job_id in job_ids:
+        state_job = state["jobs"][job_id]
+        state_job["url"] = url
+        state_job["slug"] = slug
+        state_job["status"] = "running"
+        state_job["running_at"] = running_at
+        job_root = run_root / "jobs" / job_id
+        job_root.mkdir(parents=True, exist_ok=True)
+        (job_root / "url.txt").write_text(url + "\n", encoding="utf-8")
+    (bundle_root / "url.txt").write_text(url + "\n", encoding="utf-8")
+    append_progress(run_root, f"running_bundle bundle={bundle_id} url={url}")
+    return "running"
+
+
+def account_active_count(state: dict, account_name: str) -> int:
+    active_units: set[str] = set()
+    for job_id, job in state.get("jobs", {}).items():
+        if job.get("account") != account_name or job.get("status") not in ACTIVE_STATUSES:
+            continue
+        active_units.add(str(job.get("bundle_id") or job.get("slug") or job_id))
+    return len(active_units)
 
 
 def find_expected_zip(output_dir: Path, expected_zip: str) -> Path | None:
@@ -498,6 +675,85 @@ def poll_job(run_root: Path, job: dict, state_job: dict, accounts_by_name: dict[
         append_progress(run_root, f"poll_pending job={job_id}")
 
 
+def poll_bundle(
+    run_root: Path,
+    bundle_id: str,
+    state: dict,
+    jobs_by_id: dict[str, dict],
+    accounts_by_name: dict[str, dict],
+) -> None:
+    active_items = [
+        (job_id, state_job)
+        for job_id, state_job in state.get("jobs", {}).items()
+        if state_job.get("bundle_id") == bundle_id
+        and state_job.get("status") in ACTIVE_STATUSES
+        and job_id in jobs_by_id
+    ]
+    if not active_items:
+        return
+
+    account = accounts_by_name.get(str(active_items[0][1].get("account", "")))
+    if account is None:
+        for job_id, state_job in active_items:
+            state_job["status"] = "failed"
+            state_job["failure_reason"] = "missing account for running bundle"
+            append_progress(run_root, f"failed job={job_id} reason=missing_bundle_account")
+        return
+
+    for _, state_job in active_items:
+        state_job["status"] = "downloading"
+    output_dir = run_root / "bundles" / bundle_id / "output"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    slug = str(active_items[0][1].get("slug", ""))
+    kernel_ref = f"{account['username']}/{slug}"
+    rc = run_kaggle(
+        ["kernels", "output", kernel_ref, "-p", str(output_dir), "--file-pattern", ".*(zip|log|json|csv)$", "-o"],
+        account,
+        run_root,
+        run_root / "bundles" / bundle_id / "output.log",
+    )
+    checked_at = now_iso()
+    has_fatal = log_has_fatal(output_dir)
+
+    for job_id, state_job in active_items:
+        state_job["last_checked"] = checked_at
+        expected_zip = state_job.get("expected_zip", f"{job_id}_result.zip")
+        zip_path = find_expected_zip(output_dir, expected_zip)
+        expected_rows = expected_summary_rows(jobs_by_id[job_id])
+        if zip_path:
+            is_valid_zip, validation_reason = validate_result_zip(zip_path, expected_rows)
+        else:
+            is_valid_zip, validation_reason = False, ""
+        if zip_path and is_valid_zip:
+            state_job["status"] = "done"
+            state_job["done_at"] = now_iso()
+            state_job["result_zip"] = str(zip_path)
+            append_progress(run_root, f"done job={job_id} bundle={bundle_id}")
+            continue
+        if zip_path and not is_valid_zip:
+            state_job["status"] = "failed"
+            state_job["failure_reason"] = f"invalid result zip: {validation_reason}"
+            append_progress(
+                run_root,
+                f"failed job={job_id} bundle={bundle_id} reason=invalid_zip detail={validation_reason}",
+            )
+            continue
+        if has_fatal and rc == 0:
+            state_job["status"] = "failed"
+            state_job["failure_reason"] = "fatal bundle log pattern"
+            append_progress(run_root, f"failed job={job_id} bundle={bundle_id} reason=fatal_log")
+            continue
+        if minutes_since(state_job.get("submitted_at", "")) > float(jobs_by_id[job_id].get("timeout_minutes", 720)):
+            state_job["status"] = "failed"
+            state_job["failure_reason"] = "timeout"
+            append_progress(run_root, f"failed job={job_id} bundle={bundle_id} reason=timeout")
+            continue
+        state_job["status"] = "running"
+
+    if rc != 0:
+        append_progress(run_root, f"poll_pending_bundle bundle={bundle_id}")
+
+
 def scheduler_loop(args: argparse.Namespace) -> None:
     run_root = args.run_root
     run_root.mkdir(parents=True, exist_ok=True)
@@ -512,10 +768,18 @@ def scheduler_loop(args: argparse.Namespace) -> None:
         ensure_jobs_in_state(state, jobs_by_id, run_root)
         state.setdefault("account_backoff_until", {})
 
+        polled_bundles: set[str] = set()
         for job_id, state_job in list(state.get("jobs", {}).items()):
             if state_job.get("status") in ACTIVE_STATUSES and job_id in jobs_by_id:
                 try:
-                    poll_job(run_root, jobs_by_id[job_id], state_job, accounts_by_name)
+                    bundle_id = str(state_job.get("bundle_id", ""))
+                    if bundle_id:
+                        if bundle_id in polled_bundles:
+                            continue
+                        polled_bundles.add(bundle_id)
+                        poll_bundle(run_root, bundle_id, state, jobs_by_id, accounts_by_name)
+                    else:
+                        poll_job(run_root, jobs_by_id[job_id], state_job, accounts_by_name)
                 except Exception as exc:  # pragma: no cover - defensive long-run guard
                     state_job["status"] = "running"
                     state_job["failure_reason"] = f"poll exception: {exc}"
@@ -545,14 +809,30 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                     )
                     if next_id is None:
                         break
+                    bundle_ids = [next_id]
                     try:
-                        result = submit_job(run_root, jobs_by_id[next_id], state["jobs"][next_id], account)
+                        bundle_ids = select_bundle_job_ids(
+                            state,
+                            jobs_by_id,
+                            next_id,
+                            float(args.bundle_target_hours),
+                            int(args.bundle_max_jobs),
+                        )
+                        result = submit_bundle(run_root, jobs_by_id, state, bundle_ids, account)
                     except Exception as exc:  # pragma: no cover - defensive long-run guard
-                        state["jobs"][next_id]["status"] = "queued"
-                        state["jobs"][next_id]["account"] = ""
-                        state["jobs"][next_id]["failure_reason"] = f"submit exception: {exc}"
+                        for failed_id in bundle_ids:
+                            state["jobs"][failed_id]["status"] = "queued"
+                            state["jobs"][failed_id]["account"] = ""
+                            state["jobs"][failed_id]["url"] = ""
+                            state["jobs"][failed_id]["slug"] = ""
+                            state["jobs"][failed_id]["failure_reason"] = f"submit exception: {exc}"
+                            for key in ("bundle_id", "bundle_index", "bundle_size"):
+                                state["jobs"][failed_id].pop(key, None)
                         result = "exception"
-                        append_progress(run_root, f"submit_exception job={next_id} account={account['name']} detail={exc}")
+                        append_progress(
+                            run_root,
+                            f"submit_exception jobs={','.join(bundle_ids)} account={account['name']} detail={exc}",
+                        )
                     if result in {"gpu_capacity", "gpu_quota", "competition_rules"}:
                         if result == "gpu_quota":
                             cooldown_minutes = float(args.quota_cooldown_minutes)
@@ -613,6 +893,18 @@ def main() -> None:
     parser.add_argument("--poll-only", action="store_true")
     parser.add_argument("--once", action="store_true", help="Run one poll/submit cycle and exit.")
     parser.add_argument("--exit-when-done", action="store_true")
+    parser.add_argument(
+        "--bundle-target-hours",
+        type=float,
+        default=0.0,
+        help="If >0, submit queued jobs from the same model as sequential bundles near this target runtime.",
+    )
+    parser.add_argument(
+        "--bundle-max-jobs",
+        type=int,
+        default=5,
+        help="Maximum subjobs per bundle when --bundle-target-hours is enabled.",
+    )
     args = parser.parse_args()
     scheduler_loop(args)
 
