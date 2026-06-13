@@ -26,6 +26,10 @@ GPU_QUOTA_PATTERNS = (
     "Maximum weekly GPU quota",
     "GPU quota of",
 )
+COMPETITION_RULES_PATTERNS = (
+    "must accept this competition's rules",
+    "accept the competition rules",
+)
 DEFAULT_DATASET_SOURCES = [
     "hkhnhduy/attack-bcos-github",
     "hkhnhduy/weights-bcos",
@@ -243,6 +247,9 @@ def parse_kaggle_url(log_path: Path) -> str:
 
 
 def classify_push_failure(text: str) -> str:
+    lowered = text.lower()
+    if any(pattern in lowered for pattern in COMPETITION_RULES_PATTERNS):
+        return "competition_rules"
     if any(pattern in text for pattern in GPU_CAPACITY_PATTERNS):
         return "gpu_capacity"
     if any(pattern in text for pattern in GPU_QUOTA_PATTERNS):
@@ -310,7 +317,7 @@ def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> str
     if rc != 0:
         text = push_log.read_text(encoding="utf-8", errors="ignore") if push_log.is_file() else ""
         push_failure = classify_push_failure(text)
-        if push_failure in {"gpu_capacity", "gpu_quota"}:
+        if push_failure in {"gpu_capacity", "gpu_quota", "competition_rules"}:
             return requeue_after_push_backoff(run_root, state_job, job_id, push_failure)
         state_job["status"] = "failed"
         state_job["failure_reason"] = "kaggle kernels push failed"
@@ -546,12 +553,13 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                         state["jobs"][next_id]["failure_reason"] = f"submit exception: {exc}"
                         result = "exception"
                         append_progress(run_root, f"submit_exception job={next_id} account={account['name']} detail={exc}")
-                    if result in {"gpu_capacity", "gpu_quota"}:
-                        cooldown_minutes = (
-                            float(args.quota_cooldown_minutes)
-                            if result == "gpu_quota"
-                            else float(args.account_cooldown_minutes)
-                        )
+                    if result in {"gpu_capacity", "gpu_quota", "competition_rules"}:
+                        if result == "gpu_quota":
+                            cooldown_minutes = float(args.quota_cooldown_minutes)
+                        elif result == "competition_rules":
+                            cooldown_minutes = float(args.rules_cooldown_minutes)
+                        else:
+                            cooldown_minutes = float(args.account_cooldown_minutes)
                         backoff_until = iso_after_minutes(cooldown_minutes)
                         state["account_backoff_until"][account["name"]] = backoff_until
                         append_progress(
@@ -595,6 +603,12 @@ def main() -> None:
         type=float,
         default=1440.0,
         help="Cooldown an account this long after Kaggle reports weekly GPU quota exhaustion.",
+    )
+    parser.add_argument(
+        "--rules-cooldown-minutes",
+        type=float,
+        default=10080.0,
+        help="Cooldown an account this long after Kaggle reports unaccepted competition rules.",
     )
     parser.add_argument("--poll-only", action="store_true")
     parser.add_argument("--once", action="store_true", help="Run one poll/submit cycle and exit.")
