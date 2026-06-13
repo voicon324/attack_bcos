@@ -166,6 +166,7 @@ HTML = r"""<!doctype html>
           <option value="queued">Queued</option>
           <option value="failed">Failed</option>
         </select>
+        <a class="button" href="/charts">Charts</a>
         <a class="button" href="/download/results.zip">Download results zip</a>
         <span class="muted" id="manifestText"></span>
       </div>
@@ -309,6 +310,299 @@ HTML = r"""<!doctype html>
 """
 
 
+CHARTS_HTML = r"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CamoPatch Result Charts</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --line: #d8dee7;
+      --text: #1b1f24;
+      --muted: #59636f;
+      --accent: #0969da;
+      --fail: #cf222e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 { margin: 0 0 8px; font-size: 20px; font-weight: 650; }
+    main { padding: 18px 24px 32px; max-width: 1500px; margin: 0 auto; }
+    .topline, .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; color: var(--muted); }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 15px; }
+    select, button, a.button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 7px 10px;
+      text-decoration: none;
+      font: inherit;
+    }
+    button { cursor: pointer; }
+    a.button { display: inline-block; }
+    canvas {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      display: block;
+    }
+    .muted { color: var(--muted); }
+    .fail { color: var(--fail); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CamoPatch Result Charts</h1>
+    <div class="topline">
+      <a class="button" href="/">Dashboard</a>
+      <button id="refreshBtn">Refresh</button>
+      <span id="statusText"></span>
+    </div>
+  </header>
+  <main>
+    <section class="panel">
+      <div class="toolbar">
+        <select id="modelFilter"></select>
+        <select id="patchFilter"></select>
+        <select id="linfFilter"></select>
+        <select id="positionFilter"></select>
+        <select id="lineLimit">
+          <option value="12">12 lines</option>
+          <option value="24">24 lines</option>
+          <option value="999">All lines</option>
+        </select>
+        <select id="xScale">
+          <option value="log">log query axis</option>
+          <option value="linear">linear query axis</option>
+        </select>
+        <span class="muted" id="filterText"></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Attack Success Rate</h2>
+      <canvas id="barChart"></canvas>
+    </section>
+
+    <section class="panel">
+      <h2>Success Rate By Query</h2>
+      <canvas id="lineChart"></canvas>
+    </section>
+  </main>
+  <script>
+    const refreshMs = 30000;
+    const palette = [
+      '#0969da', '#12805c', '#cf222e', '#9a6700', '#8250df', '#1f883d',
+      '#bf3989', '#bc4c00', '#0550ae', '#57606a', '#2da44e', '#a40e26'
+    ];
+    let chartData = {jobs: [], filters: {}};
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function labelFor(job) {
+      return `${job.model} s${job.patch_size} ${job.linf} ${job.position}`;
+    }
+    function sortedValues(values) {
+      return Array.from(values).sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true}));
+    }
+    function fillSelect(id, values, allLabel) {
+      const select = document.getElementById(id);
+      const current = select.value;
+      select.innerHTML = `<option value="all">${esc(allLabel)}</option>` +
+        sortedValues(values).map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      if ([...select.options].some(option => option.value === current)) select.value = current;
+    }
+    function selectedJobs() {
+      const model = document.getElementById('modelFilter').value;
+      const patch = document.getElementById('patchFilter').value;
+      const linf = document.getElementById('linfFilter').value;
+      const position = document.getElementById('positionFilter').value;
+      return chartData.jobs.filter(job =>
+        (model === 'all' || job.model === model) &&
+        (patch === 'all' || String(job.patch_size) === patch) &&
+        (linf === 'all' || job.linf === linf) &&
+        (position === 'all' || job.position === position)
+      );
+    }
+    function setupCanvas(canvas, cssHeight) {
+      const ratio = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.max(320, Math.floor(rect.width));
+      const height = Math.max(260, Math.floor(cssHeight));
+      canvas.width = Math.floor(width * ratio);
+      canvas.height = Math.floor(height * ratio);
+      canvas.style.height = `${height}px`;
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      return {ctx, width, height};
+    }
+    function drawAxes(ctx, width, height, left, top, right, bottom, yTicks) {
+      ctx.strokeStyle = '#d8dee7';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#59636f';
+      ctx.font = '12px system-ui, sans-serif';
+      for (const tick of yTicks) {
+        const y = bottom - (tick / 100) * (bottom - top);
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
+        ctx.stroke();
+        ctx.fillText(`${tick}%`, 8, y + 4);
+      }
+      ctx.strokeStyle = '#8c959f';
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, bottom);
+      ctx.lineTo(right, bottom);
+      ctx.stroke();
+    }
+    function drawBarChart(jobs) {
+      const canvas = document.getElementById('barChart');
+      const rows = jobs.slice().sort((a, b) =>
+        a.model.localeCompare(b.model) ||
+        Number(a.patch_size) - Number(b.patch_size) ||
+        a.linf.localeCompare(b.linf, undefined, {numeric: true}) ||
+        a.position.localeCompare(b.position)
+      );
+      const {ctx, width, height} = setupCanvas(canvas, Math.max(320, rows.length * 28 + 70));
+      const left = Math.min(250, Math.max(150, width * 0.42)), right = width - 58, top = 24, bottom = height - 34;
+      ctx.fillStyle = '#1b1f24';
+      ctx.font = '12px system-ui, sans-serif';
+      drawAxes(ctx, width, height, left, top, right, bottom, [0, 25, 50, 75, 100]);
+      if (!rows.length) {
+        ctx.fillText('No completed jobs in this filter.', 20, 45);
+        return;
+      }
+      const rowH = Math.max(18, (bottom - top) / rows.length);
+      rows.forEach((job, index) => {
+        const y = top + index * rowH + rowH * 0.18;
+        const h = Math.max(8, rowH * 0.58);
+        const w = (right - left) * Math.max(0, Math.min(100, job.success_rate * 100)) / 100;
+        ctx.fillStyle = palette[index % palette.length];
+        ctx.fillRect(left, y, w, h);
+        ctx.fillStyle = '#1b1f24';
+        ctx.fillText(labelFor(job), 12, y + h - 1);
+        ctx.fillText(`${(job.success_rate * 100).toFixed(1)}%`, Math.min(right - 44, left + w + 6), y + h - 1);
+      });
+    }
+    function queryX(value, maxQuery, left, right, scale) {
+      const q = Math.max(0, Number(value) || 0);
+      if (scale === 'log') {
+        return left + Math.log10(q + 1) / Math.log10(maxQuery + 1) * (right - left);
+      }
+      return left + q / maxQuery * (right - left);
+    }
+    function drawLineChart(jobs) {
+      const canvas = document.getElementById('lineChart');
+      const limit = Number(document.getElementById('lineLimit').value);
+      const scale = document.getElementById('xScale').value;
+      const rows = jobs.slice().sort((a, b) => b.success_rate - a.success_rate).slice(0, limit);
+      const legendRows = Math.ceil(Math.max(1, rows.length) / 3);
+      const {ctx, width, height} = setupCanvas(canvas, Math.max(540, 500 + legendRows * 20));
+      const left = 56, right = width - 24, top = 22, bottom = height - 62 - legendRows * 20;
+      const maxQuery = Math.max(1, ...rows.map(job => Number(job.queries || 10000)));
+      drawAxes(ctx, width, height, left, top, right, bottom, [0, 25, 50, 75, 100]);
+      ctx.fillStyle = '#59636f';
+      ctx.font = '12px system-ui, sans-serif';
+      const xTicks = scale === 'log' ? [1, 10, 100, 1000, 10000].filter(v => v <= maxQuery) : [0, 2500, 5000, 7500, 10000].filter(v => v <= maxQuery);
+      for (const tick of xTicks) {
+        const x = queryX(tick, maxQuery, left, right, scale);
+        ctx.strokeStyle = '#eef1f5';
+        ctx.beginPath();
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, bottom);
+        ctx.stroke();
+        ctx.fillText(String(tick), x - 14, bottom + 18);
+      }
+      if (!rows.length) {
+        ctx.fillStyle = '#1b1f24';
+        ctx.fillText('No completed jobs in this filter.', 20, 45);
+        return;
+      }
+      rows.forEach((job, index) => {
+        const color = palette[index % palette.length];
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const points = [[0, 0], ...job.curve];
+        if (!points.some(point => Number(point[0]) === Number(job.queries))) {
+          points.push([Number(job.queries || maxQuery), job.success_rate * 100]);
+        }
+        points.forEach((point, pointIndex) => {
+          const x = queryX(point[0], maxQuery, left, right, scale);
+          const y = bottom - (Math.max(0, Math.min(100, Number(point[1]) || 0)) / 100) * (bottom - top);
+          if (pointIndex === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        const legendY = bottom + 40 + Math.floor(index / 3) * 18;
+        const legendX = left + (index % 3) * Math.max(230, (right - left) / 3);
+        ctx.fillStyle = color;
+        ctx.fillRect(legendX, legendY - 9, 10, 10);
+        ctx.fillStyle = '#1b1f24';
+        ctx.fillText(`${labelFor(job)} ${(job.success_rate * 100).toFixed(1)}%`, legendX + 14, legendY);
+      });
+    }
+    function renderCharts() {
+      const jobs = selectedJobs();
+      document.getElementById('filterText').textContent = `${jobs.length} completed jobs`;
+      drawBarChart(jobs);
+      drawLineChart(jobs);
+    }
+    async function refreshCharts() {
+      try {
+        const res = await fetch('/api/charts', {cache: 'no-store'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        chartData = await res.json();
+        fillSelect('modelFilter', new Set(chartData.jobs.map(job => job.model)), 'All models');
+        fillSelect('patchFilter', new Set(chartData.jobs.map(job => String(job.patch_size))), 'All sizes');
+        fillSelect('linfFilter', new Set(chartData.jobs.map(job => job.linf)), 'All L_inf');
+        fillSelect('positionFilter', new Set(chartData.jobs.map(job => job.position)), 'All positions');
+        document.getElementById('statusText').textContent = `updated: ${new Date().toLocaleString()} | done: ${chartData.jobs.length}`;
+        renderCharts();
+      } catch (err) {
+        document.getElementById('statusText').innerHTML = `<span class="fail">${esc(err.message)}</span>`;
+      }
+    }
+    for (const id of ['modelFilter','patchFilter','linfFilter','positionFilter','lineLimit','xScale']) {
+      document.getElementById(id).addEventListener('change', renderCharts);
+    }
+    document.getElementById('refreshBtn').addEventListener('click', refreshCharts);
+    window.addEventListener('resize', renderCharts);
+    refreshCharts();
+    setInterval(refreshCharts, refreshMs);
+  </script>
+</body>
+</html>
+"""
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
@@ -360,6 +654,23 @@ def read_manifest(run_root: Path) -> dict[str, Any]:
         return {"zip_valid": False, "error": str(exc)}
 
 
+def find_zip_member(archive: zipfile.ZipFile, suffix: str) -> str | None:
+    exact = suffix.lstrip("/")
+    if exact in archive.namelist():
+        return exact
+    matches = sorted(name for name in archive.namelist() if name.endswith(suffix))
+    return matches[0] if matches else None
+
+
+def read_zip_csv(archive: zipfile.ZipFile, suffix: str) -> list[dict[str, str]]:
+    name = find_zip_member(archive, suffix)
+    if name is None:
+        return []
+    with archive.open(name) as handle:
+        text = io.TextIOWrapper(handle, encoding="utf-8", newline="")
+        return list(csv.DictReader(text))
+
+
 def parse_int(value: Any) -> int | None:
     try:
         text = str(value).strip()
@@ -368,6 +679,30 @@ def parse_int(value: Any) -> int | None:
         return int(float(text))
     except (TypeError, ValueError):
         return None
+
+
+def parse_job_id_fields(job_id: str) -> dict[str, str]:
+    rest = job_id.removeprefix("camopatch-bcos-")
+    model = rest.split("-s", 1)[0]
+    patch_size = ""
+    linf = ""
+    position = ""
+    if "-s" in rest:
+        patch_size = rest.split("-s", 1)[1].split("-", 1)[0]
+    if "-linf" in rest:
+        linf = rest.split("-linf", 1)[1].rsplit("-", 1)[0].replace("_", "/")
+    if job_id.endswith("-bcos_top1"):
+        position = "bcos_top1"
+    elif job_id.endswith("-gradcam"):
+        position = "gradcam"
+    elif job_id.endswith("-random"):
+        position = "random"
+    return {
+        "model": model,
+        "patch_size": patch_size,
+        "linf": linf,
+        "position": position,
+    }
 
 
 def parse_float(value: Any) -> float | None:
@@ -411,14 +746,13 @@ def make_result(row: dict[str, Any]) -> dict[str, Any] | None:
 def summarize_result_zip(path: Path) -> dict[str, Any] | None:
     try:
         with zipfile.ZipFile(path) as archive:
-            names = set(archive.namelist())
-            if "outputs/summary.csv" not in names:
+            if find_zip_member(archive, "outputs/summary.csv") is None:
                 return None
             manifest: dict[str, Any] = {}
-            if "manifest.json" in names:
-                manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
-            summary_text = archive.read("outputs/summary.csv").decode("utf-8")
-            rows = list(csv.DictReader(io.StringIO(summary_text)))
+            manifest_name = find_zip_member(archive, "manifest.json")
+            if manifest_name is not None:
+                manifest = json.loads(archive.read(manifest_name).decode("utf-8"))
+            rows = read_zip_csv(archive, "outputs/summary.csv")
             total = len(rows)
             adversarial = sum(parse_int(row.get("adversarial")) == 1 for row in rows)
             return make_result(
@@ -432,6 +766,88 @@ def summarize_result_zip(path: Path) -> dict[str, Any] | None:
             )
     except (OSError, zipfile.BadZipFile, KeyError, json.JSONDecodeError, UnicodeDecodeError):
         return None
+
+
+def chart_job_from_zip(job_id: str, state_job: dict[str, Any], path: Path) -> dict[str, Any] | None:
+    try:
+        with zipfile.ZipFile(path) as archive:
+            summary_rows = read_zip_csv(archive, "outputs/summary.csv")
+            by_query_rows = read_zip_csv(archive, "outputs/success_by_query.csv")
+            manifest: dict[str, Any] = {}
+            manifest_name = find_zip_member(archive, "manifest.json")
+            if manifest_name is not None:
+                manifest = json.loads(archive.read(manifest_name).decode("utf-8"))
+    except (OSError, zipfile.BadZipFile, KeyError, json.JSONDecodeError, UnicodeDecodeError):
+        return None
+    if not summary_rows:
+        return None
+
+    total = len(summary_rows)
+    adversarial = sum(parse_int(row.get("adversarial")) == 1 for row in summary_rows)
+    if total <= 0:
+        return None
+    parsed = parse_job_id_fields(job_id)
+    first = summary_rows[0]
+    model = str(first.get("model") or parsed["model"])
+    patch_size = str(first.get("patch_size") or parsed["patch_size"])
+    position = str(first.get("position_rule") or parsed["position"])
+    linf = parsed["linf"]
+    queries = parse_int(first.get("queries")) or parse_int(manifest.get("queries")) or 10000
+    curve: list[list[float]] = []
+    for row in sorted(by_query_rows, key=lambda item: parse_int(item.get("first_success_query")) or 0):
+        query = parse_int(row.get("first_success_query"))
+        cumulative = parse_int(row.get("cumulative_successes"))
+        if query is None or cumulative is None:
+            continue
+        curve.append([float(query), cumulative / total * 100.0])
+    if not curve or curve[-1][0] < queries:
+        curve.append([float(queries), adversarial / total * 100.0])
+
+    return {
+        "job_id": job_id,
+        "account": state_job.get("account", ""),
+        "url": state_job.get("url", ""),
+        "model": model,
+        "patch_size": patch_size,
+        "linf": linf,
+        "position": position,
+        "queries": queries,
+        "rows": total,
+        "adversarial": adversarial,
+        "success_rate": adversarial / total,
+        "success_percent": adversarial / total * 100.0,
+        "curve": curve,
+        "done_at": state_job.get("done_at", ""),
+        "elapsed_sec": manifest.get("elapsed_sec", ""),
+    }
+
+
+def build_chart_data(run_root: Path) -> dict[str, Any]:
+    state = load_json(run_root / "state.json", {"jobs": {}})
+    jobs: list[dict[str, Any]] = []
+    for job_id, state_job in state.get("jobs", {}).items():
+        if state_job.get("status") != "done":
+            continue
+        result_zip = str(state_job.get("result_zip", ""))
+        if not result_zip:
+            continue
+        chart_job = chart_job_from_zip(job_id, state_job, Path(result_zip))
+        if chart_job is not None:
+            jobs.append(chart_job)
+    jobs.sort(
+        key=lambda job: (
+            str(job["model"]),
+            int(job["patch_size"]) if str(job["patch_size"]).isdigit() else 0,
+            str(job["linf"]),
+            str(job["position"]),
+        )
+    )
+    return {
+        "generated_at": now_iso(),
+        "run_root": str(run_root),
+        "done_jobs": len(jobs),
+        "jobs": jobs,
+    }
 
 
 def read_job_results(run_root: Path, jobs_state: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -556,8 +972,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if parsed.path in {"/", "/index.html"}:
             self.send_bytes(HTML.encode("utf-8"), "text/html; charset=utf-8")
             return
+        if parsed.path == "/charts":
+            self.send_bytes(CHARTS_HTML.encode("utf-8"), "text/html; charset=utf-8")
+            return
         if parsed.path == "/api/status":
             body = json.dumps(build_status(self.run_root), indent=2).encode("utf-8")
+            self.send_bytes(body, "application/json; charset=utf-8")
+            return
+        if parsed.path == "/api/charts":
+            body = json.dumps(build_chart_data(self.run_root), indent=2).encode("utf-8")
             self.send_bytes(body, "application/json; charset=utf-8")
             return
         if parsed.path == "/download/results.zip":
