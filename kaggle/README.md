@@ -31,6 +31,10 @@ python scripts/run_kaggle_scheduler.py --accounts-config kaggle/accounts.example
 ```
 
 Each account defaults to `max_running=2`. Do not commit any `kaggle.json`.
+Optional account fields can override the quota estimator:
+`weekly_gpu_quota_hours`, `quota_reset_weekday`, `quota_reset_hour`,
+`quota_reset_timezone`, `auto_bundle_under_quota_hours`,
+`auto_bundle_target_hours`, and `bundle_max_jobs`.
 
 ## Submit And Monitor
 
@@ -61,13 +65,30 @@ python scripts/run_kaggle_scheduler.py \
   --bundle-max-jobs 5
 ```
 
+The scheduler also has automatic tail bundle mode enabled by default. It
+estimates weekly GPU usage from local `state.json`, counting one active Kaggle
+kernel per regular job and one active kernel per bundle. By default it assumes a
+30h weekly quota, reset on Saturday 00:00 UTC, and switches an account to bundle
+submissions when estimated remaining quota is at or below 4h:
+
+```bash
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config kaggle/camopatch_jobs.json \
+  --auto-bundle-under-quota-hours 4 \
+  --auto-bundle-target-hours 9.5
+```
+
+Set `--auto-bundle-under-quota-hours 0` to disable automatic bundle switching.
+The estimate is intentionally conservative and can be wrong if the same Kaggle
+account runs GPU notebooks outside this scheduler, or if Kaggle assigns that
+account a quota other than the configured value. If the Kaggle UI shows a
+different reset time, override `--quota-reset-timezone`, `--quota-reset-hour`,
+or the per-account fields in the accounts config.
+
 Bundle mode still records each condition as its own job in `state.json` and on
 the dashboard. The scheduler submits one Kaggle kernel containing multiple
 queued jobs from the same model, then the Kaggle runner executes them
-sequentially and writes one result zip per original job. Use this manually when
-Kaggle shows an account has less than roughly 4h of regular GPU quota left; the
-Kaggle CLI does not expose a reliable per-account remaining quota value to the
-local scheduler.
+sequentially and writes one result zip per original job.
 
 Each Kaggle job writes `/kaggle/working/<job_id>_result.zip`. The zip contains
 `outputs/summary.csv`, `outputs/success_events.csv`,

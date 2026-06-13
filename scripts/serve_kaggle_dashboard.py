@@ -213,6 +213,12 @@ HTML = r"""<!doctype html>
     function fmtResult(value) {
       return value === null || value === undefined || value === '' ? 'N/A' : String(value);
     }
+    function fmtHours(value) {
+      if (value === null || value === undefined || value === '') return 'N/A';
+      const n = Number(value);
+      if (!Number.isFinite(n)) return 'N/A';
+      return `${n.toFixed(2)}h`;
+    }
     function card(label, value, cls='') {
       return `<div class="card"><div class="label">${esc(label)}</div><div class="value ${cls}">${esc(value)}</div></div>`;
     }
@@ -238,15 +244,28 @@ HTML = r"""<!doctype html>
       const manifest = data.manifest || {};
       document.getElementById('manifestText').textContent =
         `zip: ${manifest.generated_at || 'none'} | success_by_query=${manifest.success_by_query_rows || 0}`;
-      renderAccounts(data.by_account || {});
+      renderAccounts(data.by_account || {}, data.account_quota_estimates || {});
       renderJobs(data.jobs || []);
       document.getElementById('progressLog').textContent = (data.progress_tail || []).join('\n');
     }
-    function renderAccounts(byAccount) {
-      const names = Object.keys(byAccount).sort();
+    function renderAccounts(byAccount, quotaEstimates) {
+      const names = Array.from(new Set([...Object.keys(byAccount), ...Object.keys(quotaEstimates)])).sort();
       document.getElementById('accounts').innerHTML = names.map(name => {
         const row = byAccount[name] || {};
-        return `<tr><th>${esc(name || '(unassigned)')}</th><td>done ${row.done || 0}</td><td>running ${row.running || 0}</td><td>queued ${row.queued || 0}</td><td>failed ${row.failed || 0}</td></tr>`;
+        const quota = quotaEstimates[name] || {};
+        const bundle = quota.auto_bundle ? '<span class="ok">bundle</span>' : 'single';
+        return `<tr>
+          <th>${esc(name || '(unassigned)')}</th>
+          <td>done ${row.done || 0}</td>
+          <td>running ${row.running || 0}</td>
+          <td>queued ${row.queued || 0}</td>
+          <td>failed ${row.failed || 0}</td>
+          <td>used ${esc(fmtHours(quota.used_hours))}</td>
+          <td>left ${esc(fmtHours(quota.remaining_hours))}</td>
+          <td>active ${esc(fmtHours(quota.active_hours))}</td>
+          <td>${bundle}</td>
+          <td>reset ${esc(quota.next_reset || 'N/A')}</td>
+        </tr>`;
       }).join('');
     }
     function renderJobs(jobs) {
@@ -504,6 +523,7 @@ def build_status(run_root: Path) -> dict[str, Any]:
         "counts": counts,
         "by_account": by_account,
         "account_backoff_until": state.get("account_backoff_until", {}),
+        "account_quota_estimates": state.get("account_quota_estimates", {}),
         "all_done": total_jobs > 0 and counts.get("done", 0) == total_jobs,
         "jobs": jobs,
         "manifest": manifest,

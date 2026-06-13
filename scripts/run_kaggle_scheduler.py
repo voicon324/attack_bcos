@@ -11,9 +11,10 @@ import shutil
 import subprocess
 import time
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 ACTIVE_STATUSES = {"submitting", "running", "downloading"}
@@ -44,10 +45,28 @@ DEFAULT_BUNDLE_ESTIMATE_HOURS = {
     "vitc_s": 2.7,
     "vitc_b": 3.6,
 }
+DEFAULT_WEEKLY_GPU_QUOTA_HOURS = 30.0
+DEFAULT_QUOTA_RESET_WEEKDAY = 5  # Saturday, Python weekday numbering.
+DEFAULT_QUOTA_RESET_HOUR = 0
+DEFAULT_QUOTA_RESET_TIMEZONE = "UTC"
+DEFAULT_AUTO_BUNDLE_UNDER_QUOTA_HOURS = 4.0
+DEFAULT_AUTO_BUNDLE_TARGET_HOURS = 9.5
 
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def parse_iso(value: str) -> datetime | None:
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -135,14 +154,24 @@ def discover_accounts(run_root: Path, accounts_config: Path | None) -> list[dict
             continue
         seen_paths.add(real_path)
         name = sanitize_slug(str(account.get("name") or kaggle_json.parent.name))
-        normalized.append(
-            {
-                "name": name,
-                "kaggle_json": str(kaggle_json),
-                "max_running": int(account.get("max_running", 2)),
-                "username": read_kaggle_username(kaggle_json),
-            }
-        )
+        normalized_account = {
+            "name": name,
+            "kaggle_json": str(kaggle_json),
+            "max_running": int(account.get("max_running", 2)),
+            "username": read_kaggle_username(kaggle_json),
+        }
+        for key in (
+            "weekly_gpu_quota_hours",
+            "quota_reset_weekday",
+            "quota_reset_hour",
+            "quota_reset_timezone",
+            "auto_bundle_under_quota_hours",
+            "auto_bundle_target_hours",
+            "bundle_max_jobs",
+        ):
+            if key in account:
+                normalized_account[key] = account[key]
+        normalized.append(normalized_account)
     if not normalized:
         raise FileNotFoundError(
             "No Kaggle accounts found. Add artifacts/secrets/kaggle.json or "
@@ -360,6 +389,151 @@ def estimated_job_hours(job: dict) -> float:
         except (TypeError, ValueError):
             pass
     return DEFAULT_BUNDLE_ESTIMATE_HOURS.get(job_model(job), 3.0)
+
+
+def account_float(account: dict, key: str, default: float) -> float:
+    try:
+        return float(account.get(key, default))
+    except (TypeError, ValueError):
+        return default
+
+
+def account_int(account: dict, key: str, default: int) -> int:
+    try:
+        return int(account.get(key, default))
+    except (TypeError, ValueError):
+        return default
+
+
+def quota_reset_window(
+    now: datetime,
+    reset_weekday: int,
+    reset_hour: int,
+    reset_timezone: str,
+) -> tuple[datetime, datetime, str]:
+    try:
+        tz = ZoneInfo(reset_timezone)
+        resolved_timezone = reset_timezone
+    except ZoneInfoNotFoundError:
+        tz = timezone.utc
+        resolved_timezone = "UTC"
+    reset_weekday = max(0, min(6, int(reset_weekday)))
+    reset_hour = max(0, min(23, int(reset_hour)))
+    local_now = now.astimezone(tz)
+    reset_today = local_now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
+    days_since_reset_day = (local_now.weekday() - reset_weekday) % 7
+    window_start = reset_today - timedelta(days=days_since_reset_day)
+    if window_start > local_now:
+        window_start -= timedelta(days=7)
+    next_reset = window_start + timedelta(days=7)
+    return window_start.astimezone(timezone.utc), next_reset.astimezone(timezone.utc), resolved_timezone
+
+
+def job_quota_unit(job_id: str, state_job: dict) -> str:
+    return str(state_job.get("bundle_id") or state_job.get("slug") or job_id)
+
+
+def estimate_account_quota(
+    state: dict,
+    account: dict,
+    args: argparse.Namespace,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    now = now or datetime.now(timezone.utc)
+    weekly_quota_hours = account_float(account, "weekly_gpu_quota_hours", float(args.weekly_gpu_quota_hours))
+    reset_weekday = account_int(account, "quota_reset_weekday", int(args.quota_reset_weekday))
+    reset_hour = account_int(account, "quota_reset_hour", int(args.quota_reset_hour))
+    reset_timezone = str(account.get("quota_reset_timezone", args.quota_reset_timezone))
+    window_start, next_reset, resolved_timezone = quota_reset_window(now, reset_weekday, reset_hour, reset_timezone)
+
+    units: dict[str, dict[str, Any]] = {}
+    for job_id, state_job in state.get("jobs", {}).items():
+        if state_job.get("account") != account["name"]:
+            continue
+        start = parse_iso(str(state_job.get("running_at") or state_job.get("submitted_at") or ""))
+        if start is None:
+            continue
+        status = str(state_job.get("status", ""))
+        active = status in ACTIVE_STATUSES
+        end = now if active else parse_iso(
+            str(state_job.get("done_at") or state_job.get("last_checked") or state_job.get("submitted_at") or "")
+        )
+        if end is None:
+            end = now
+        if end <= window_start:
+            continue
+        unit_key = job_quota_unit(job_id, state_job)
+        unit = units.setdefault(
+            unit_key,
+            {
+                "start": start,
+                "end": end,
+                "active": active,
+                "jobs": 0,
+            },
+        )
+        unit["start"] = min(unit["start"], start)
+        unit["end"] = max(unit["end"], end)
+        unit["active"] = bool(unit["active"] or active)
+        unit["jobs"] = int(unit["jobs"]) + 1
+
+    used_hours = 0.0
+    active_hours = 0.0
+    active_units = 0
+    for unit in units.values():
+        start = max(unit["start"], window_start)
+        end = now if unit["active"] else min(unit["end"], now)
+        if end <= start:
+            continue
+        elapsed_hours = (end - start).total_seconds() / 3600.0
+        used_hours += elapsed_hours
+        if unit["active"]:
+            active_hours += elapsed_hours
+            active_units += 1
+
+    remaining_hours = weekly_quota_hours - used_hours
+    under_hours = account_float(
+        account,
+        "auto_bundle_under_quota_hours",
+        float(args.auto_bundle_under_quota_hours),
+    )
+    auto_bundle = bool(under_hours > 0 and remaining_hours <= under_hours)
+    return {
+        "account": account["name"],
+        "username": account["username"],
+        "weekly_quota_hours": round(weekly_quota_hours, 3),
+        "used_hours": round(used_hours, 3),
+        "active_hours": round(active_hours, 3),
+        "remaining_hours": round(remaining_hours, 3),
+        "active_units": active_units,
+        "observed_units": len(units),
+        "window_start": window_start.replace(microsecond=0).isoformat(),
+        "next_reset": next_reset.replace(microsecond=0).isoformat(),
+        "reset_weekday": reset_weekday,
+        "reset_hour": reset_hour,
+        "reset_timezone": resolved_timezone,
+        "auto_bundle_under_quota_hours": round(under_hours, 3),
+        "auto_bundle": auto_bundle,
+        "generated_at": now.replace(microsecond=0).isoformat(),
+    }
+
+
+def estimate_account_quotas(state: dict, accounts: list[dict], args: argparse.Namespace) -> dict[str, dict[str, Any]]:
+    now = datetime.now(timezone.utc)
+    return {account["name"]: estimate_account_quota(state, account, args, now) for account in accounts}
+
+
+def bundle_target_for_account(account: dict, args: argparse.Namespace, quota_estimate: dict[str, Any]) -> float:
+    manual_target = float(args.bundle_target_hours)
+    if manual_target > 0:
+        return manual_target
+    if quota_estimate.get("auto_bundle"):
+        return account_float(account, "auto_bundle_target_hours", float(args.auto_bundle_target_hours))
+    return 0.0
+
+
+def bundle_max_jobs_for_account(account: dict, args: argparse.Namespace) -> int:
+    return max(1, account_int(account, "bundle_max_jobs", int(args.bundle_max_jobs)))
 
 
 def select_bundle_job_ids(
@@ -589,14 +763,9 @@ def log_has_fatal(output_dir: Path) -> bool:
 
 
 def minutes_since(value: str) -> float:
-    if not value:
+    dt = parse_iso(value)
+    if dt is None:
         return 0.0
-    try:
-        dt = datetime.fromisoformat(value)
-    except ValueError:
-        return 0.0
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
     return (datetime.now(timezone.utc) - dt).total_seconds() / 60.0
 
 
@@ -609,14 +778,9 @@ def iso_after_minutes(minutes: float) -> str:
 
 
 def is_future_iso(value: str) -> bool:
-    if not value:
+    dt = parse_iso(value)
+    if dt is None:
         return False
-    try:
-        dt = datetime.fromisoformat(value)
-    except ValueError:
-        return False
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
     return dt > datetime.now(timezone.utc)
 
 
@@ -762,11 +926,13 @@ def scheduler_loop(args: argparse.Namespace) -> None:
     state_path = run_root / "state.json"
     state = load_json(state_path, {"jobs": {}})
     state.setdefault("account_backoff_until", {})
+    state.setdefault("account_quota_estimates", {})
 
     while True:
         jobs_by_id = load_jobs(args.jobs_config)
         ensure_jobs_in_state(state, jobs_by_id, run_root)
         state.setdefault("account_backoff_until", {})
+        state.setdefault("account_quota_estimates", {})
 
         polled_bundles: set[str] = set()
         for job_id, state_job in list(state.get("jobs", {}).items()):
@@ -787,6 +953,10 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                 save_json(state_path, state)
                 write_dashboard(run_root, state)
 
+        state["account_quota_estimates"] = estimate_account_quotas(state, accounts, args)
+        save_json(state_path, state)
+        write_dashboard(run_root, state)
+
         submitted = 0
         if not args.poll_only:
             for account in accounts:
@@ -797,6 +967,9 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                         f"skip_account account={account['name']} reason=gpu_capacity_until {backoff_until}",
                     )
                     continue
+                quota_estimate = state.get("account_quota_estimates", {}).get(account["name"], {})
+                bundle_target_hours = bundle_target_for_account(account, args, quota_estimate)
+                bundle_max_jobs = bundle_max_jobs_for_account(account, args)
                 free_slots = int(account["max_running"]) - account_active_count(state, account["name"])
                 while free_slots > 0:
                     next_id = next(
@@ -815,9 +988,24 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                             state,
                             jobs_by_id,
                             next_id,
-                            float(args.bundle_target_hours),
-                            int(args.bundle_max_jobs),
+                            bundle_target_hours,
+                            bundle_max_jobs,
                         )
+                        if bundle_target_hours > 0 and len(bundle_ids) > 1:
+                            bundle_reason = (
+                                "quota"
+                                if quota_estimate.get("auto_bundle") and float(args.bundle_target_hours) <= 0
+                                else "manual"
+                            )
+                            append_progress(
+                                run_root,
+                                "bundle_select "
+                                f"reason={bundle_reason} "
+                                f"account={account['name']} "
+                                f"remaining_hours={quota_estimate.get('remaining_hours', 'unknown')} "
+                                f"target_hours={bundle_target_hours} "
+                                f"jobs={len(bundle_ids)}",
+                            )
                         result = submit_bundle(run_root, jobs_by_id, state, bundle_ids, account)
                     except Exception as exc:  # pragma: no cover - defensive long-run guard
                         for failed_id in bundle_ids:
@@ -856,6 +1044,7 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                 if args.max_submit and submitted >= args.max_submit:
                     break
 
+        state["account_quota_estimates"] = estimate_account_quotas(state, accounts, args)
         save_json(state_path, state)
         write_dashboard(run_root, state)
 
@@ -904,6 +1093,41 @@ def main() -> None:
         type=int,
         default=5,
         help="Maximum subjobs per bundle when --bundle-target-hours is enabled.",
+    )
+    parser.add_argument(
+        "--weekly-gpu-quota-hours",
+        type=float,
+        default=DEFAULT_WEEKLY_GPU_QUOTA_HOURS,
+        help="Estimated weekly GPU quota per account; account config can override weekly_gpu_quota_hours.",
+    )
+    parser.add_argument(
+        "--quota-reset-weekday",
+        type=int,
+        default=DEFAULT_QUOTA_RESET_WEEKDAY,
+        help="Estimated quota reset weekday using Python numbering, Monday=0 ... Saturday=5.",
+    )
+    parser.add_argument(
+        "--quota-reset-hour",
+        type=int,
+        default=DEFAULT_QUOTA_RESET_HOUR,
+        help="Estimated quota reset hour in --quota-reset-timezone.",
+    )
+    parser.add_argument(
+        "--quota-reset-timezone",
+        default=DEFAULT_QUOTA_RESET_TIMEZONE,
+        help="Timezone for estimated quota reset, for example UTC or Europe/Berlin.",
+    )
+    parser.add_argument(
+        "--auto-bundle-under-quota-hours",
+        type=float,
+        default=DEFAULT_AUTO_BUNDLE_UNDER_QUOTA_HOURS,
+        help="Automatically bundle when estimated remaining weekly quota is at or below this many hours. 0 disables.",
+    )
+    parser.add_argument(
+        "--auto-bundle-target-hours",
+        type=float,
+        default=DEFAULT_AUTO_BUNDLE_TARGET_HOURS,
+        help="Target runtime for automatic quota-tail bundles.",
     )
     args = parser.parse_args()
     scheduler_loop(args)

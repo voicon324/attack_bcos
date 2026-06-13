@@ -3,7 +3,14 @@
     {
       "name": "main",
       "kaggle_json": "artifacts/secrets/kaggle.json",
-      "max_running": 2
+      "max_running": 2,
+      "weekly_gpu_quota_hours": 30,
+      "quota_reset_weekday": 5,
+      "quota_reset_hour": 0,
+      "quota_reset_timezone": "UTC",
+      "auto_bundle_under_quota_hours": 4,
+      "auto_bundle_target_hours": 9.5,
+      "bundle_max_jobs": 5
     },
     {
       "name": "aux",
