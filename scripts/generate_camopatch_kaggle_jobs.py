@@ -25,7 +25,7 @@ DATASET_SOURCES = [
     "hkhnhduy/weights-bcos",
     "sautkin/imagenet1kvalid",
 ]
-COMPETITION_SOURCES = ["nvidia-nemotron-model-reasoning-challenge"]
+COMPETITION_SOURCES = ["arc-prize-2026-arc-agi-3"]
 MACHINE_SHAPE = "NvidiaRtxPro6000"
 
 

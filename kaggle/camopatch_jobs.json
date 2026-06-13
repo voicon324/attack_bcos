@@ -17,7 +17,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf16_256-random_result.zip",
@@ -57,7 +57,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf16_256-bcos_top1_result.zip",
@@ -97,7 +97,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf16_256-gradcam_result.zip",
@@ -137,7 +137,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf32_256-random_result.zip",
@@ -177,7 +177,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf32_256-bcos_top1_result.zip",
@@ -217,7 +217,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf32_256-gradcam_result.zip",
@@ -257,7 +257,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf64_256-random_result.zip",
@@ -297,7 +297,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf64_256-bcos_top1_result.zip",
@@ -337,7 +337,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s16-linf64_256-gradcam_result.zip",
@@ -377,7 +377,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf16_256-random_result.zip",
@@ -417,7 +417,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf16_256-bcos_top1_result.zip",
@@ -457,7 +457,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf16_256-gradcam_result.zip",
@@ -497,7 +497,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf32_256-random_result.zip",
@@ -537,7 +537,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf32_256-bcos_top1_result.zip",
@@ -577,7 +577,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf32_256-gradcam_result.zip",
@@ -617,7 +617,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf64_256-random_result.zip",
@@ -657,7 +657,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf64_256-bcos_top1_result.zip",
@@ -697,7 +697,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s16-linf64_256-gradcam_result.zip",
@@ -737,7 +737,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf16_256-random_result.zip",
@@ -777,7 +777,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf16_256-bcos_top1_result.zip",
@@ -817,7 +817,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf16_256-gradcam_result.zip",
@@ -857,7 +857,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf32_256-random_result.zip",
@@ -897,7 +897,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf32_256-bcos_top1_result.zip",
@@ -937,7 +937,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf32_256-gradcam_result.zip",
@@ -977,7 +977,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf64_256-random_result.zip",
@@ -1017,7 +1017,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf64_256-bcos_top1_result.zip",
@@ -1057,7 +1057,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s16-linf64_256-gradcam_result.zip",
@@ -1097,7 +1097,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf16_256-random_result.zip",
@@ -1137,7 +1137,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf16_256-bcos_top1_result.zip",
@@ -1177,7 +1177,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf16_256-gradcam_result.zip",
@@ -1217,7 +1217,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf32_256-random_result.zip",
@@ -1257,7 +1257,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf32_256-bcos_top1_result.zip",
@@ -1297,7 +1297,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf32_256-gradcam_result.zip",
@@ -1337,7 +1337,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf64_256-random_result.zip",
@@ -1377,7 +1377,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf64_256-bcos_top1_result.zip",
@@ -1417,7 +1417,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s16-linf64_256-gradcam_result.zip",
@@ -1457,7 +1457,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf16_256-random_result.zip",
@@ -1497,7 +1497,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf16_256-bcos_top1_result.zip",
@@ -1537,7 +1537,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf16_256-gradcam_result.zip",
@@ -1577,7 +1577,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf32_256-random_result.zip",
@@ -1617,7 +1617,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf32_256-bcos_top1_result.zip",
@@ -1657,7 +1657,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf32_256-gradcam_result.zip",
@@ -1697,7 +1697,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf64_256-random_result.zip",
@@ -1737,7 +1737,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf64_256-bcos_top1_result.zip",
@@ -1777,7 +1777,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s16-linf64_256-gradcam_result.zip",
@@ -1817,7 +1817,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s16-linf16_256-random_result.zip",
@@ -1857,7 +1857,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s16-linf16_256-bcos_top1_result.zip",
@@ -1897,7 +1897,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s16-linf32_256-random_result.zip",
@@ -1937,7 +1937,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s16-linf32_256-bcos_top1_result.zip",
@@ -1977,7 +1977,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s16-linf64_256-random_result.zip",
@@ -2017,7 +2017,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s16-linf64_256-bcos_top1_result.zip",
@@ -2057,7 +2057,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s16-linf16_256-random_result.zip",
@@ -2097,7 +2097,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s16-linf16_256-bcos_top1_result.zip",
@@ -2137,7 +2137,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s16-linf32_256-random_result.zip",
@@ -2177,7 +2177,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s16-linf32_256-bcos_top1_result.zip",
@@ -2217,7 +2217,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s16-linf64_256-random_result.zip",
@@ -2257,7 +2257,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s16-linf64_256-bcos_top1_result.zip",
@@ -2297,7 +2297,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf16_256-random_result.zip",
@@ -2337,7 +2337,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf16_256-bcos_top1_result.zip",
@@ -2377,7 +2377,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf16_256-gradcam_result.zip",
@@ -2417,7 +2417,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf32_256-random_result.zip",
@@ -2457,7 +2457,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf32_256-bcos_top1_result.zip",
@@ -2497,7 +2497,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf32_256-gradcam_result.zip",
@@ -2537,7 +2537,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf64_256-random_result.zip",
@@ -2577,7 +2577,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf64_256-bcos_top1_result.zip",
@@ -2617,7 +2617,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s8-linf64_256-gradcam_result.zip",
@@ -2657,7 +2657,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf16_256-random_result.zip",
@@ -2697,7 +2697,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf16_256-bcos_top1_result.zip",
@@ -2737,7 +2737,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf16_256-gradcam_result.zip",
@@ -2777,7 +2777,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf32_256-random_result.zip",
@@ -2817,7 +2817,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf32_256-bcos_top1_result.zip",
@@ -2857,7 +2857,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf32_256-gradcam_result.zip",
@@ -2897,7 +2897,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf64_256-random_result.zip",
@@ -2937,7 +2937,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf64_256-bcos_top1_result.zip",
@@ -2977,7 +2977,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s8-linf64_256-gradcam_result.zip",
@@ -3017,7 +3017,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf16_256-random_result.zip",
@@ -3057,7 +3057,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf16_256-bcos_top1_result.zip",
@@ -3097,7 +3097,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf16_256-gradcam_result.zip",
@@ -3137,7 +3137,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf32_256-random_result.zip",
@@ -3177,7 +3177,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf32_256-bcos_top1_result.zip",
@@ -3217,7 +3217,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf32_256-gradcam_result.zip",
@@ -3257,7 +3257,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf64_256-random_result.zip",
@@ -3297,7 +3297,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf64_256-bcos_top1_result.zip",
@@ -3337,7 +3337,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s8-linf64_256-gradcam_result.zip",
@@ -3377,7 +3377,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf16_256-random_result.zip",
@@ -3417,7 +3417,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf16_256-bcos_top1_result.zip",
@@ -3457,7 +3457,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf16_256-gradcam_result.zip",
@@ -3497,7 +3497,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf32_256-random_result.zip",
@@ -3537,7 +3537,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf32_256-bcos_top1_result.zip",
@@ -3577,7 +3577,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf32_256-gradcam_result.zip",
@@ -3617,7 +3617,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf64_256-random_result.zip",
@@ -3657,7 +3657,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf64_256-bcos_top1_result.zip",
@@ -3697,7 +3697,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s8-linf64_256-gradcam_result.zip",
@@ -3737,7 +3737,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf16_256-random_result.zip",
@@ -3777,7 +3777,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf16_256-bcos_top1_result.zip",
@@ -3817,7 +3817,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf16_256-gradcam_result.zip",
@@ -3857,7 +3857,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf32_256-random_result.zip",
@@ -3897,7 +3897,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf32_256-bcos_top1_result.zip",
@@ -3937,7 +3937,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf32_256-gradcam_result.zip",
@@ -3977,7 +3977,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf64_256-random_result.zip",
@@ -4017,7 +4017,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf64_256-bcos_top1_result.zip",
@@ -4057,7 +4057,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s8-linf64_256-gradcam_result.zip",
@@ -4097,7 +4097,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s8-linf16_256-random_result.zip",
@@ -4137,7 +4137,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s8-linf16_256-bcos_top1_result.zip",
@@ -4177,7 +4177,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s8-linf32_256-random_result.zip",
@@ -4217,7 +4217,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s8-linf32_256-bcos_top1_result.zip",
@@ -4257,7 +4257,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s8-linf64_256-random_result.zip",
@@ -4297,7 +4297,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s8-linf64_256-bcos_top1_result.zip",
@@ -4337,7 +4337,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s8-linf16_256-random_result.zip",
@@ -4377,7 +4377,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s8-linf16_256-bcos_top1_result.zip",
@@ -4417,7 +4417,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s8-linf32_256-random_result.zip",
@@ -4457,7 +4457,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s8-linf32_256-bcos_top1_result.zip",
@@ -4497,7 +4497,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s8-linf64_256-random_result.zip",
@@ -4537,7 +4537,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s8-linf64_256-bcos_top1_result.zip",
@@ -4577,7 +4577,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf16_256-random_result.zip",
@@ -4617,7 +4617,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf16_256-bcos_top1_result.zip",
@@ -4657,7 +4657,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf16_256-gradcam_result.zip",
@@ -4697,7 +4697,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf32_256-random_result.zip",
@@ -4737,7 +4737,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf32_256-bcos_top1_result.zip",
@@ -4777,7 +4777,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf32_256-gradcam_result.zip",
@@ -4817,7 +4817,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf64_256-random_result.zip",
@@ -4857,7 +4857,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf64_256-bcos_top1_result.zip",
@@ -4897,7 +4897,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet18-s32-linf64_256-gradcam_result.zip",
@@ -4937,7 +4937,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf16_256-random_result.zip",
@@ -4977,7 +4977,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf16_256-bcos_top1_result.zip",
@@ -5017,7 +5017,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf16_256-gradcam_result.zip",
@@ -5057,7 +5057,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf32_256-random_result.zip",
@@ -5097,7 +5097,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf32_256-bcos_top1_result.zip",
@@ -5137,7 +5137,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf32_256-gradcam_result.zip",
@@ -5177,7 +5177,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf64_256-random_result.zip",
@@ -5217,7 +5217,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf64_256-bcos_top1_result.zip",
@@ -5257,7 +5257,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-resnet50-s32-linf64_256-gradcam_result.zip",
@@ -5297,7 +5297,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf16_256-random_result.zip",
@@ -5337,7 +5337,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf16_256-bcos_top1_result.zip",
@@ -5377,7 +5377,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf16_256-gradcam_result.zip",
@@ -5417,7 +5417,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf32_256-random_result.zip",
@@ -5457,7 +5457,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf32_256-bcos_top1_result.zip",
@@ -5497,7 +5497,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf32_256-gradcam_result.zip",
@@ -5537,7 +5537,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf64_256-random_result.zip",
@@ -5577,7 +5577,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf64_256-bcos_top1_result.zip",
@@ -5617,7 +5617,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-densenet121-s32-linf64_256-gradcam_result.zip",
@@ -5657,7 +5657,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf16_256-random_result.zip",
@@ -5697,7 +5697,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf16_256-bcos_top1_result.zip",
@@ -5737,7 +5737,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf16_256-gradcam_result.zip",
@@ -5777,7 +5777,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf32_256-random_result.zip",
@@ -5817,7 +5817,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf32_256-bcos_top1_result.zip",
@@ -5857,7 +5857,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf32_256-gradcam_result.zip",
@@ -5897,7 +5897,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf64_256-random_result.zip",
@@ -5937,7 +5937,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf64_256-bcos_top1_result.zip",
@@ -5977,7 +5977,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_tiny-s32-linf64_256-gradcam_result.zip",
@@ -6017,7 +6017,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf16_256-random_result.zip",
@@ -6057,7 +6057,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf16_256-bcos_top1_result.zip",
@@ -6097,7 +6097,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf16_256-gradcam_result.zip",
@@ -6137,7 +6137,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf32_256-random_result.zip",
@@ -6177,7 +6177,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf32_256-bcos_top1_result.zip",
@@ -6217,7 +6217,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf32_256-gradcam_result.zip",
@@ -6257,7 +6257,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf64_256-random_result.zip",
@@ -6297,7 +6297,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf64_256-bcos_top1_result.zip",
@@ -6337,7 +6337,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-convnext_base-s32-linf64_256-gradcam_result.zip",
@@ -6377,7 +6377,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s32-linf16_256-random_result.zip",
@@ -6417,7 +6417,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s32-linf16_256-bcos_top1_result.zip",
@@ -6457,7 +6457,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s32-linf32_256-random_result.zip",
@@ -6497,7 +6497,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s32-linf32_256-bcos_top1_result.zip",
@@ -6537,7 +6537,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s32-linf64_256-random_result.zip",
@@ -6577,7 +6577,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_s-s32-linf64_256-bcos_top1_result.zip",
@@ -6617,7 +6617,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s32-linf16_256-random_result.zip",
@@ -6657,7 +6657,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s32-linf16_256-bcos_top1_result.zip",
@@ -6697,7 +6697,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s32-linf32_256-random_result.zip",
@@ -6737,7 +6737,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s32-linf32_256-bcos_top1_result.zip",
@@ -6777,7 +6777,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s32-linf64_256-random_result.zip",
@@ -6817,7 +6817,7 @@
         "sautkin/imagenet1kvalid"
       ],
       "competition_sources": [
-        "nvidia-nemotron-model-reasoning-challenge"
+        "arc-prize-2026-arc-agi-3"
       ],
       "output_pattern": ".*(zip|log|json|csv)$",
       "expected_zip": "camopatch-bcos-vitc_b-s32-linf64_256-bcos_top1_result.zip",
