@@ -18,6 +18,14 @@ from typing import Any
 
 ACTIVE_STATUSES = {"submitting", "running", "downloading"}
 TERMINAL_STATUSES = {"done", "failed"}
+GPU_CAPACITY_PATTERNS = (
+    "Maximum batch GPU session count",
+    "Maximum simultaneous GPU session count",
+)
+GPU_QUOTA_PATTERNS = (
+    "Maximum weekly GPU quota",
+    "GPU quota of",
+)
 DEFAULT_DATASET_SOURCES = [
     "hkhnhduy/attack-bcos-github",
     "hkhnhduy/weights-bcos",
@@ -234,6 +242,24 @@ def parse_kaggle_url(log_path: Path) -> str:
     return matches[-1] if matches else ""
 
 
+def classify_push_failure(text: str) -> str:
+    if any(pattern in text for pattern in GPU_CAPACITY_PATTERNS):
+        return "gpu_capacity"
+    if any(pattern in text for pattern in GPU_QUOTA_PATTERNS):
+        return "gpu_quota"
+    return "failed"
+
+
+def requeue_after_push_backoff(run_root: Path, state_job: dict, job_id: str, reason: str) -> str:
+    state_job["status"] = "queued"
+    state_job["account"] = ""
+    state_job["url"] = ""
+    state_job["slug"] = ""
+    state_job["failure_reason"] = ""
+    append_progress(run_root, f"queued job={job_id} reason={reason}")
+    return reason
+
+
 def stage_kernel(run_root: Path, job: dict, account: dict) -> tuple[Path, str, str]:
     job_id = job["job_id"]
     kernel_dir = run_root / "jobs" / job_id / "kernel"
@@ -283,14 +309,9 @@ def submit_job(run_root: Path, job: dict, state_job: dict, account: dict) -> str
     rc = run_kaggle(push_args, account, run_root, push_log)
     if rc != 0:
         text = push_log.read_text(encoding="utf-8", errors="ignore") if push_log.is_file() else ""
-        if "Maximum batch GPU session count" in text:
-            state_job["status"] = "queued"
-            state_job["account"] = ""
-            state_job["url"] = ""
-            state_job["slug"] = ""
-            state_job["failure_reason"] = ""
-            append_progress(run_root, f"queued job={job_id} reason=gpu_capacity")
-            return "gpu_capacity"
+        push_failure = classify_push_failure(text)
+        if push_failure in {"gpu_capacity", "gpu_quota"}:
+            return requeue_after_push_backoff(run_root, state_job, job_id, push_failure)
         state_job["status"] = "failed"
         state_job["failure_reason"] = "kaggle kernels push failed"
         append_progress(run_root, f"failed job={job_id} reason=push")
@@ -525,12 +546,17 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                         state["jobs"][next_id]["failure_reason"] = f"submit exception: {exc}"
                         result = "exception"
                         append_progress(run_root, f"submit_exception job={next_id} account={account['name']} detail={exc}")
-                    if result == "gpu_capacity":
-                        backoff_until = iso_after_minutes(float(args.account_cooldown_minutes))
+                    if result in {"gpu_capacity", "gpu_quota"}:
+                        cooldown_minutes = (
+                            float(args.quota_cooldown_minutes)
+                            if result == "gpu_quota"
+                            else float(args.account_cooldown_minutes)
+                        )
+                        backoff_until = iso_after_minutes(cooldown_minutes)
                         state["account_backoff_until"][account["name"]] = backoff_until
                         append_progress(
                             run_root,
-                            f"cooldown account={account['name']} until={backoff_until}",
+                            f"cooldown account={account['name']} reason={result} until={backoff_until}",
                         )
                         break
                     submitted += 1
@@ -563,6 +589,12 @@ def main() -> None:
         type=float,
         default=30.0,
         help="Cooldown an account this long after Kaggle reports no free GPU sessions.",
+    )
+    parser.add_argument(
+        "--quota-cooldown-minutes",
+        type=float,
+        default=1440.0,
+        help="Cooldown an account this long after Kaggle reports weekly GPU quota exhaustion.",
     )
     parser.add_argument("--poll-only", action="store_true")
     parser.add_argument("--once", action="store_true", help="Run one poll/submit cycle and exit.")
