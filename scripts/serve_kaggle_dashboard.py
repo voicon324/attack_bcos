@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
 import os
 import subprocess
@@ -136,7 +138,7 @@ HTML = r"""<!doctype html>
     .two { grid-template-columns: 1fr 1fr; }
     @media (max-width: 900px) {
       .cards, .two { grid-template-columns: 1fr 1fr; }
-      th:nth-child(4), td:nth-child(4), th:nth-child(7), td:nth-child(7) { display: none; }
+      th:nth-child(7), td:nth-child(7), th:nth-child(8), td:nth-child(8) { display: none; }
     }
   </style>
 </head>
@@ -170,13 +172,15 @@ HTML = r"""<!doctype html>
       <table>
         <thead>
           <tr>
-            <th style="width: 37%">Job</th>
+            <th style="width: 28%">Job</th>
             <th style="width: 8%">Status</th>
             <th style="width: 8%">Account</th>
-            <th style="width: 8%">Age</th>
-            <th style="width: 15%">Last Check</th>
-            <th style="width: 8%">Tries</th>
-            <th style="width: 16%">Reason / Link</th>
+            <th style="width: 8%">Result</th>
+            <th style="width: 7%">ASR</th>
+            <th style="width: 8%">Elapsed</th>
+            <th style="width: 9%">Age</th>
+            <th style="width: 12%">Last Check</th>
+            <th style="width: 12%">Reason / Link</th>
           </tr>
         </thead>
         <tbody id="jobs"></tbody>
@@ -205,6 +209,9 @@ HTML = r"""<!doctype html>
       if (minutes === null || minutes === undefined || minutes === '') return '';
       if (minutes < 60) return `${minutes.toFixed(1)}m`;
       return `${(minutes / 60).toFixed(2)}h`;
+    }
+    function fmtResult(value) {
+      return value === null || value === undefined || value === '' ? 'N/A' : String(value);
     }
     function card(label, value, cls='') {
       return `<div class="card"><div class="label">${esc(label)}</div><div class="value ${cls}">${esc(value)}</div></div>`;
@@ -255,9 +262,11 @@ HTML = r"""<!doctype html>
           <td>${esc(j.job_id)}</td>
           <td><span class="status ${esc(j.status)}">${esc(j.status)}</span></td>
           <td>${esc(j.account)}</td>
+          <td>${esc(fmtResult(j.result_display))}</td>
+          <td>${esc(fmtResult(j.asr_display))}</td>
+          <td>${esc(fmtResult(j.elapsed_display))}</td>
           <td>${esc(fmtAge(j.age_minutes))}</td>
           <td>${esc(j.last_checked || '')}</td>
-          <td>${esc(j.tries || '')}</td>
           <td>${reason}</td>
         </tr>`;
       }).join('');
@@ -332,6 +341,108 @@ def read_manifest(run_root: Path) -> dict[str, Any]:
         return {"zip_valid": False, "error": str(exc)}
 
 
+def parse_int(value: Any) -> int | None:
+    try:
+        text = str(value).strip()
+        if not text:
+            return None
+        return int(float(text))
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_float(value: Any) -> float | None:
+    try:
+        text = str(value).strip()
+        if not text:
+            return None
+        return float(text)
+    except (TypeError, ValueError):
+        return None
+
+
+def format_elapsed(seconds: float | None) -> str:
+    if seconds is None:
+        return "N/A"
+    if seconds < 3600:
+        return f"{seconds / 60:.1f}m"
+    return f"{seconds / 3600:.2f}h"
+
+
+def make_result(row: dict[str, Any]) -> dict[str, Any] | None:
+    rows = parse_int(row.get("rows"))
+    adversarial = parse_int(row.get("adversarial"))
+    if rows is None or rows <= 0 or adversarial is None:
+        return None
+    elapsed_sec = parse_float(row.get("elapsed_sec"))
+    success_rate = adversarial / rows if rows else None
+    return {
+        "rows": rows,
+        "adversarial": adversarial,
+        "success_rate": success_rate,
+        "elapsed_sec": elapsed_sec,
+        "return_code": row.get("return_code", ""),
+        "done_at": row.get("done_at", ""),
+        "result_display": f"{adversarial}/{rows}",
+        "asr_display": f"{success_rate * 100:.1f}%" if success_rate is not None else "N/A",
+        "elapsed_display": format_elapsed(elapsed_sec),
+    }
+
+
+def summarize_result_zip(path: Path) -> dict[str, Any] | None:
+    try:
+        with zipfile.ZipFile(path) as archive:
+            names = set(archive.namelist())
+            if "outputs/summary.csv" not in names:
+                return None
+            manifest: dict[str, Any] = {}
+            if "manifest.json" in names:
+                manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+            summary_text = archive.read("outputs/summary.csv").decode("utf-8")
+            rows = list(csv.DictReader(io.StringIO(summary_text)))
+            total = len(rows)
+            adversarial = sum(parse_int(row.get("adversarial")) == 1 for row in rows)
+            return make_result(
+                {
+                    "rows": total,
+                    "adversarial": adversarial,
+                    "elapsed_sec": manifest.get("elapsed_sec"),
+                    "return_code": manifest.get("return_code", ""),
+                    "done_at": manifest.get("finished_at", ""),
+                }
+            )
+    except (OSError, zipfile.BadZipFile, KeyError, json.JSONDecodeError, UnicodeDecodeError):
+        return None
+
+
+def read_job_results(run_root: Path, jobs_state: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    results: dict[str, dict[str, Any]] = {}
+    path = run_root / "aggregate" / "camopatch_job_summary.csv"
+    if path.is_file():
+        try:
+            with path.open("r", encoding="utf-8", newline="") as handle:
+                for row in csv.DictReader(handle):
+                    if row.get("status") != "done":
+                        continue
+                    result = make_result(row)
+                    if result is not None and row.get("job_id"):
+                        results[str(row["job_id"])] = result
+        except OSError:
+            pass
+
+    # Fill any newly completed jobs before the aggregate monitor refreshes.
+    for job_id, job in jobs_state.items():
+        if job_id in results or job.get("status") != "done":
+            continue
+        result_zip = str(job.get("result_zip", ""))
+        if not result_zip:
+            continue
+        result = summarize_result_zip(Path(result_zip))
+        if result is not None:
+            results[job_id] = result
+    return results
+
+
 def process_alive(path: Path) -> dict[str, Any]:
     if not path.is_file():
         return {"pid": "", "alive": False, "children": []}
@@ -355,6 +466,7 @@ def process_alive(path: Path) -> dict[str, Any]:
 def build_status(run_root: Path) -> dict[str, Any]:
     state = load_json(run_root / "state.json", {"jobs": {}})
     jobs_state = state.get("jobs", {})
+    job_results = read_job_results(run_root, jobs_state)
     jobs: list[dict[str, Any]] = []
     counts: dict[str, int] = {}
     by_account: dict[str, dict[str, int]] = {}
@@ -364,6 +476,7 @@ def build_status(run_root: Path) -> dict[str, Any]:
         counts[status] = counts.get(status, 0) + 1
         by_account.setdefault(account, {})
         by_account[account][status] = by_account[account].get(status, 0) + 1
+        result = job_results.get(job_id, {})
         jobs.append(
             {
                 "job_id": job_id,
@@ -376,6 +489,10 @@ def build_status(run_root: Path) -> dict[str, Any]:
                 "tries": job.get("tries", ""),
                 "failure_reason": job.get("failure_reason", ""),
                 "result_zip": job.get("result_zip", ""),
+                "result": result if status == "done" else {},
+                "result_display": result.get("result_display", "N/A") if status == "done" else "N/A",
+                "asr_display": result.get("asr_display", "N/A") if status == "done" else "N/A",
+                "elapsed_display": result.get("elapsed_display", "N/A") if status == "done" else "N/A",
             }
         )
     total_jobs = len(jobs)
