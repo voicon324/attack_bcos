@@ -61,7 +61,7 @@ Tail bundle mode, for accounts with only a few GPU quota hours left:
 ```bash
 python scripts/run_kaggle_scheduler.py \
   --jobs-config kaggle/camopatch_jobs.json \
-  --bundle-target-hours 9.5 \
+  --bundle-target-hours 7.5 \
   --bundle-max-jobs 5
 ```
 
@@ -75,7 +75,7 @@ submissions when estimated remaining quota is at or below 4h:
 python scripts/run_kaggle_scheduler.py \
   --jobs-config kaggle/camopatch_jobs.json \
   --auto-bundle-under-quota-hours 4 \
-  --auto-bundle-target-hours 9.5
+  --auto-bundle-target-hours 7.5
 ```
 
 Set `--auto-bundle-under-quota-hours 0` to disable automatic bundle switching.

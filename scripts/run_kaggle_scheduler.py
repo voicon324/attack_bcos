@@ -45,12 +45,36 @@ DEFAULT_BUNDLE_ESTIMATE_HOURS = {
     "vitc_s": 2.7,
     "vitc_b": 3.6,
 }
+DEFAULT_BUNDLE_ESTIMATE_HOURS_BY_MODEL_PATCH = {
+    ("resnet18", 8): 1.9,
+    ("resnet18", 16): 1.9,
+    ("resnet18", 32): 2.6,
+    ("resnet50", 8): 3.2,
+    ("resnet50", 16): 3.2,
+    ("resnet50", 32): 3.8,
+    ("densenet121", 8): 3.4,
+    ("densenet121", 16): 3.4,
+    ("densenet121", 32): 7.0,
+    ("convnext_tiny", 8): 3.4,
+    ("convnext_tiny", 16): 3.4,
+    ("convnext_tiny", 32): 6.0,
+    ("convnext_base", 8): 5.8,
+    ("convnext_base", 16): 5.6,
+    ("convnext_base", 32): 7.0,
+    ("vitc_s", 8): 4.5,
+    ("vitc_s", 16): 2.8,
+    ("vitc_s", 32): 4.5,
+    ("vitc_b", 8): 4.8,
+    ("vitc_b", 16): 4.7,
+    ("vitc_b", 32): 5.2,
+}
 DEFAULT_WEEKLY_GPU_QUOTA_HOURS = 30.0
 DEFAULT_QUOTA_RESET_WEEKDAY = 5  # Saturday, Python weekday numbering.
 DEFAULT_QUOTA_RESET_HOUR = 0
 DEFAULT_QUOTA_RESET_TIMEZONE = "UTC"
 DEFAULT_AUTO_BUNDLE_UNDER_QUOTA_HOURS = 4.0
-DEFAULT_AUTO_BUNDLE_TARGET_HOURS = 9.5
+DEFAULT_AUTO_BUNDLE_TARGET_HOURS = 7.5
+DEFAULT_BUNDLE_TIMEOUT_MINUTES = 840
 
 
 def now_iso() -> str:
@@ -380,6 +404,14 @@ def job_model(job: dict) -> str:
     return str(job.get("job_config", {}).get("model", ""))
 
 
+def job_patch_size(job: dict) -> int | None:
+    value = job.get("job_config", {}).get("patch_size", "")
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def estimated_job_hours(job: dict) -> float:
     job_config = job.get("job_config", {})
     value = job.get("estimated_hours", job_config.get("estimated_hours"))
@@ -388,7 +420,13 @@ def estimated_job_hours(job: dict) -> float:
             return max(0.1, float(value))
         except (TypeError, ValueError):
             pass
-    return DEFAULT_BUNDLE_ESTIMATE_HOURS.get(job_model(job), 3.0)
+    model = job_model(job)
+    patch_size = job_patch_size(job)
+    if patch_size is not None:
+        estimate = DEFAULT_BUNDLE_ESTIMATE_HOURS_BY_MODEL_PATCH.get((model, patch_size))
+        if estimate is not None:
+            return estimate
+    return DEFAULT_BUNDLE_ESTIMATE_HOURS.get(model, 3.0)
 
 
 def account_float(account: dict, key: str, default: float) -> float:
@@ -590,7 +628,7 @@ def make_bundle_job(bundle_id: str, bundle_jobs: list[dict]) -> dict:
         "kernel_sources": first.get("kernel_sources", []),
         "output_pattern": ".*(zip|log|json|csv)$",
         "expected_zip": f"{bundle_id}_bundle_result.zip",
-        "timeout_minutes": max(720, int((estimated_hours + 2.0) * 60)),
+        "timeout_minutes": max(DEFAULT_BUNDLE_TIMEOUT_MINUTES, int((estimated_hours + 3.0) * 60)),
         "job_config": {
             "job_id": bundle_id,
             "bundle": True,
@@ -635,6 +673,7 @@ def submit_bundle(
         state_job["bundle_id"] = bundle_id
         state_job["bundle_index"] = idx
         state_job["bundle_size"] = len(job_ids)
+        state_job["bundle_timeout_minutes"] = bundle["timeout_minutes"]
         state_job["expected_zip"] = jobs_by_id[job_id].get("expected_zip", f"{job_id}_result.zip")
         state_job["failure_reason"] = ""
 
@@ -907,7 +946,11 @@ def poll_bundle(
             state_job["failure_reason"] = "fatal bundle log pattern"
             append_progress(run_root, f"failed job={job_id} bundle={bundle_id} reason=fatal_log")
             continue
-        if minutes_since(state_job.get("submitted_at", "")) > float(jobs_by_id[job_id].get("timeout_minutes", 720)):
+        timeout_minutes = max(
+            float(jobs_by_id[job_id].get("timeout_minutes", 720)),
+            float(state_job.get("bundle_timeout_minutes", DEFAULT_BUNDLE_TIMEOUT_MINUTES) or DEFAULT_BUNDLE_TIMEOUT_MINUTES),
+        )
+        if minutes_since(state_job.get("submitted_at", "")) > timeout_minutes:
             state_job["status"] = "failed"
             state_job["failure_reason"] = "timeout"
             append_progress(run_root, f"failed job={job_id} bundle={bundle_id} reason=timeout")

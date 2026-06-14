@@ -9,7 +9,7 @@
       "quota_reset_hour": 0,
       "quota_reset_timezone": "UTC",
       "auto_bundle_under_quota_hours": 4,
-      "auto_bundle_target_hours": 9.5,
+      "auto_bundle_target_hours": 7.5,
       "bundle_max_jobs": 5
     },
     {
