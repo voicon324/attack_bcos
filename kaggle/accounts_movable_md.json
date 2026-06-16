@@ -1,0 +1,52 @@
+{
+  "accounts": [
+    {
+      "name": "md1",
+      "kaggle_json": "artifacts/secrets/kaggle_md1.json",
+      "max_running": 2,
+      "weekly_gpu_quota_hours": 30,
+      "quota_reset_weekday": 5,
+      "quota_reset_hour": 0,
+      "quota_reset_timezone": "UTC",
+      "auto_bundle_under_quota_hours": 0,
+      "auto_bundle_target_hours": 0,
+      "bundle_max_jobs": 1
+    },
+    {
+      "name": "md2",
+      "kaggle_json": "artifacts/secrets/kaggle_md2.json",
+      "max_running": 2,
+      "weekly_gpu_quota_hours": 30,
+      "quota_reset_weekday": 5,
+      "quota_reset_hour": 0,
+      "quota_reset_timezone": "UTC",
+      "auto_bundle_under_quota_hours": 0,
+      "auto_bundle_target_hours": 0,
+      "bundle_max_jobs": 1
+    },
+    {
+      "name": "md3",
+      "kaggle_json": "artifacts/secrets/kaggle_md3.json",
+      "max_running": 2,
+      "weekly_gpu_quota_hours": 30,
+      "quota_reset_weekday": 5,
+      "quota_reset_hour": 0,
+      "quota_reset_timezone": "UTC",
+      "auto_bundle_under_quota_hours": 0,
+      "auto_bundle_target_hours": 0,
+      "bundle_max_jobs": 1
+    },
+    {
+      "name": "md4",
+      "kaggle_json": "artifacts/secrets/kaggle_md4.json",
+      "max_running": 2,
+      "weekly_gpu_quota_hours": 30,
+      "quota_reset_weekday": 5,
+      "quota_reset_hour": 0,
+      "quota_reset_timezone": "UTC",
+      "auto_bundle_under_quota_hours": 0,
+      "auto_bundle_target_hours": 0,
+      "bundle_max_jobs": 1
+    }
+  ]
+}

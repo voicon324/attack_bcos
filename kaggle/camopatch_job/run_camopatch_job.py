@@ -385,9 +385,11 @@ def main() -> None:
         str(config["patch_size"]),
         "--position-rule",
         position_rule_for(config),
-        "--fixed-position",
-        "--no_save_images",
     ]
+    if bool(config.get("fixed_position", True)):
+        cmd.append("--fixed-position")
+    if not bool(config.get("save_images", False)):
+        cmd.append("--no_save_images")
     if "seed" in config:
         cmd.extend(["--seed", str(config["seed"])])
     if int(config.get("limit_images", 0) or 0) > 0:

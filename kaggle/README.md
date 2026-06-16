@@ -9,8 +9,21 @@ python scripts/generate_camopatch_kaggle_jobs.py --output kaggle/camopatch_jobs.
 This writes 171 CamoPatch B-cos jobs: 7 models, 3 patch sizes, 3 Linf budgets,
 and fixed `random`/`bcos_top1`/`gradcam` positions, excluding ViTC gradcam.
 Jobs are staged as offline Kaggle scripts with `machine_shape=NvidiaRtxPro6000`
-and the `nvidia-nemotron-model-reasoning-challenge` competition source, matching
+and the `arc-prize-2026-arc-agi-3` competition source, matching
 the Pro 6000 setup in `template__fixed.ipynb`.
+
+Generate the movable-position size-16, `L_inf=64/256` queue:
+
+```bash
+python scripts/generate_camopatch_movable_kaggle_jobs.py \
+  --output kaggle/camopatch_movable_s16_linf64_jobs.json
+```
+
+This writes 14 jobs: the same 7 B-cos models, init positions `random` and
+`bcos_top1`, `fixed_position=false`, and no gradcam. The CamoPatch runner still
+validates and zips `summary.csv`, `success_events.csv`, `success_by_query.csv`,
+and per-image `.npy` files, including `first_success_query` and final patch
+coordinates.
 
 ## Accounts
 
@@ -29,6 +42,10 @@ or pass an accounts file:
 ```bash
 python scripts/run_kaggle_scheduler.py --accounts-config kaggle/accounts.example.json --once --poll-only
 ```
+
+The movable queue uses `kaggle/accounts_movable_md.json`, which points to
+`artifacts/secrets/kaggle_md1.json` through `kaggle_md4.json` and sets
+`max_running=2` per account.
 
 Each account defaults to `max_running=2`. Do not commit any `kaggle.json`.
 Optional account fields can override the quota estimator:
