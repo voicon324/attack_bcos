@@ -449,13 +449,28 @@ CHARTS_HTML = r"""<!doctype html>
         (position === 'all' || job.position === position)
       );
     }
-    function aggregateModelCurves(jobs) {
+    function lineGroupMode(jobs) {
+      const selectedModel = document.getElementById('modelFilter').value;
+      const selectedPosition = document.getElementById('positionFilter').value;
+      const visibleModels = new Set(jobs.map(job => job.model));
+      if (selectedPosition === 'all' && selectedModel !== 'all' && visibleModels.size === 1) {
+        return 'position';
+      }
+      return 'model';
+    }
+    function aggregateLineCurves(jobs) {
+      const mode = lineGroupMode(jobs);
       const groups = new Map();
       for (const job of jobs) {
-        const key = job.model || 'unknown';
+        const key = mode === 'position'
+          ? (job.position || 'unknown')
+          : (job.model || 'unknown');
         if (!groups.has(key)) {
           groups.set(key, {
-            model: key,
+            label: key,
+            mode,
+            model: job.model || '',
+            position: job.position || '',
             rows: 0,
             adversarial: 0,
             jobs: 0,
@@ -486,7 +501,10 @@ CHARTS_HTML = r"""<!doctype html>
           curve.push([group.queries || 10000, group.rows ? group.adversarial / group.rows * 100 : 0]);
         }
         return {
+          label: group.label,
+          mode: group.mode,
           model: group.model,
+          position: group.position,
           rows: group.rows,
           adversarial: group.adversarial,
           jobs: group.jobs,
@@ -494,7 +512,7 @@ CHARTS_HTML = r"""<!doctype html>
           success_rate: group.rows ? group.adversarial / group.rows : 0,
           curve,
         };
-      }).sort((a, b) => b.success_rate - a.success_rate || a.model.localeCompare(b.model));
+      }).sort((a, b) => b.success_rate - a.success_rate || a.label.localeCompare(b.label));
     }
     function setupCanvas(canvas, cssHeight) {
       const ratio = window.devicePixelRatio || 1;
@@ -569,7 +587,7 @@ CHARTS_HTML = r"""<!doctype html>
       const canvas = document.getElementById('lineChart');
       const limit = Number(document.getElementById('lineLimit').value);
       const scale = document.getElementById('xScale').value;
-      const rows = aggregateModelCurves(jobs).slice(0, limit);
+      const rows = aggregateLineCurves(jobs).slice(0, limit);
       const legendRows = Math.ceil(Math.max(1, rows.length) / 3);
       const {ctx, width, height} = setupCanvas(canvas, Math.max(540, 500 + legendRows * 20));
       const left = 56, right = width - 24, top = 22, bottom = height - 62 - legendRows * 20;
@@ -620,13 +638,14 @@ CHARTS_HTML = r"""<!doctype html>
         ctx.fillStyle = color;
         ctx.fillRect(legendX, legendY - 9, 10, 10);
         ctx.fillStyle = '#1b1f24';
-        ctx.fillText(`${job.model} ${(job.success_rate * 100).toFixed(1)}% (${job.adversarial}/${job.rows}, ${job.jobs} jobs)`, legendX + 14, legendY);
+        ctx.fillText(`${job.label} ${(job.success_rate * 100).toFixed(1)}% (${job.adversarial}/${job.rows}, ${job.jobs} jobs)`, legendX + 14, legendY);
       });
     }
     function renderCharts() {
       const jobs = selectedJobs();
-      const modelCount = aggregateModelCurves(jobs).length;
-      document.getElementById('filterText').textContent = `${jobs.length} completed jobs | ${modelCount} model series`;
+      const lineGroups = aggregateLineCurves(jobs);
+      const groupName = lineGroupMode(jobs) === 'position' ? 'position series' : 'model series';
+      document.getElementById('filterText').textContent = `${jobs.length} completed jobs | ${lineGroups.length} ${groupName}`;
       drawBarChart(jobs);
       drawLineChart(jobs);
     }
