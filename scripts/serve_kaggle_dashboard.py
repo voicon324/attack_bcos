@@ -409,7 +409,7 @@ CHARTS_HTML = r"""<!doctype html>
     </section>
 
     <section class="panel">
-      <h2>Success Rate By Query</h2>
+      <h2>Success Rate By Query By Model</h2>
       <canvas id="lineChart"></canvas>
     </section>
   </main>
@@ -448,6 +448,53 @@ CHARTS_HTML = r"""<!doctype html>
         (linf === 'all' || job.linf === linf) &&
         (position === 'all' || job.position === position)
       );
+    }
+    function aggregateModelCurves(jobs) {
+      const groups = new Map();
+      for (const job of jobs) {
+        const key = job.model || 'unknown';
+        if (!groups.has(key)) {
+          groups.set(key, {
+            model: key,
+            rows: 0,
+            adversarial: 0,
+            jobs: 0,
+            queries: 0,
+            events: new Map(),
+          });
+        }
+        const group = groups.get(key);
+        group.rows += Number(job.rows || 0);
+        group.adversarial += Number(job.adversarial || 0);
+        group.jobs += 1;
+        group.queries = Math.max(group.queries, Number(job.queries || 0));
+        for (const event of (job.events || [])) {
+          const query = Number(event[0]);
+          const count = Number(event[1]);
+          if (!Number.isFinite(query) || !Number.isFinite(count) || count <= 0) continue;
+          group.events.set(query, (group.events.get(query) || 0) + count);
+        }
+      }
+      return Array.from(groups.values()).map(group => {
+        const curve = [];
+        let cumulative = 0;
+        for (const query of Array.from(group.events.keys()).sort((a, b) => a - b)) {
+          cumulative += group.events.get(query) || 0;
+          curve.push([query, group.rows ? cumulative / group.rows * 100 : 0]);
+        }
+        if (!curve.length || curve[curve.length - 1][0] < group.queries) {
+          curve.push([group.queries || 10000, group.rows ? group.adversarial / group.rows * 100 : 0]);
+        }
+        return {
+          model: group.model,
+          rows: group.rows,
+          adversarial: group.adversarial,
+          jobs: group.jobs,
+          queries: group.queries || 10000,
+          success_rate: group.rows ? group.adversarial / group.rows : 0,
+          curve,
+        };
+      }).sort((a, b) => b.success_rate - a.success_rate || a.model.localeCompare(b.model));
     }
     function setupCanvas(canvas, cssHeight) {
       const ratio = window.devicePixelRatio || 1;
@@ -522,7 +569,7 @@ CHARTS_HTML = r"""<!doctype html>
       const canvas = document.getElementById('lineChart');
       const limit = Number(document.getElementById('lineLimit').value);
       const scale = document.getElementById('xScale').value;
-      const rows = jobs.slice().sort((a, b) => b.success_rate - a.success_rate).slice(0, limit);
+      const rows = aggregateModelCurves(jobs).slice(0, limit);
       const legendRows = Math.ceil(Math.max(1, rows.length) / 3);
       const {ctx, width, height} = setupCanvas(canvas, Math.max(540, 500 + legendRows * 20));
       const left = 56, right = width - 24, top = 22, bottom = height - 62 - legendRows * 20;
@@ -540,6 +587,13 @@ CHARTS_HTML = r"""<!doctype html>
         ctx.stroke();
         ctx.fillText(String(tick), x - 14, bottom + 18);
       }
+      ctx.fillStyle = '#59636f';
+      ctx.fillText('Query', right - 34, bottom + 38);
+      ctx.save();
+      ctx.translate(18, top + 112);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Attack success rate', 0, 0);
+      ctx.restore();
       if (!rows.length) {
         ctx.fillStyle = '#1b1f24';
         ctx.fillText('No completed jobs in this filter.', 20, 45);
@@ -566,12 +620,13 @@ CHARTS_HTML = r"""<!doctype html>
         ctx.fillStyle = color;
         ctx.fillRect(legendX, legendY - 9, 10, 10);
         ctx.fillStyle = '#1b1f24';
-        ctx.fillText(`${labelFor(job)} ${(job.success_rate * 100).toFixed(1)}%`, legendX + 14, legendY);
+        ctx.fillText(`${job.model} ${(job.success_rate * 100).toFixed(1)}% (${job.adversarial}/${job.rows}, ${job.jobs} jobs)`, legendX + 14, legendY);
       });
     }
     function renderCharts() {
       const jobs = selectedJobs();
-      document.getElementById('filterText').textContent = `${jobs.length} completed jobs`;
+      const modelCount = aggregateModelCurves(jobs).length;
+      document.getElementById('filterText').textContent = `${jobs.length} completed jobs | ${modelCount} model series`;
       drawBarChart(jobs);
       drawLineChart(jobs);
     }
@@ -640,18 +695,38 @@ def tail_lines(path: Path, count: int = 40) -> list[str]:
 
 
 def read_manifest(run_root: Path) -> dict[str, Any]:
-    path = run_root / "aggregate" / "camopatch_results_only_latest.zip"
-    if not path.is_file():
+    path = latest_results_zip(run_root)
+    if path is None:
         return {}
     try:
-        with zipfile.ZipFile(path) as archive:
-            bad_file = archive.testzip()
-            manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
-            manifest["zip_valid"] = bad_file is None
-            manifest["bad_zip_entry"] = bad_file
-            return manifest
+        return read_zip_manifest(path)
     except (OSError, zipfile.BadZipFile, KeyError, json.JSONDecodeError, UnicodeDecodeError) as exc:
         return {"zip_valid": False, "error": str(exc)}
+
+
+def latest_results_zip(run_root: Path) -> Path | None:
+    aggregate_dir = run_root / "aggregate"
+    preferred = aggregate_dir / "camopatch_results_only_latest.zip"
+    if preferred.is_file():
+        return preferred
+    matches = sorted(
+        aggregate_dir.glob("*results_only_latest.zip"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    return matches[0] if matches else None
+
+
+def read_zip_manifest(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        return {}
+    with zipfile.ZipFile(path) as archive:
+        bad_file = archive.testzip()
+        manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+        manifest["zip_valid"] = bad_file is None
+        manifest["bad_zip_entry"] = bad_file
+        manifest["zip_name"] = path.name
+        return manifest
 
 
 def find_zip_member(archive: zipfile.ZipFile, suffix: str) -> str | None:
@@ -683,6 +758,8 @@ def parse_int(value: Any) -> int | None:
 
 def parse_job_id_fields(job_id: str) -> dict[str, str]:
     rest = job_id.removeprefix("camopatch-bcos-")
+    if rest.startswith("movable-"):
+        rest = rest.removeprefix("movable-")
     model = rest.split("-s", 1)[0]
     patch_size = ""
     linf = ""
@@ -690,8 +767,17 @@ def parse_job_id_fields(job_id: str) -> dict[str, str]:
     if "-s" in rest:
         patch_size = rest.split("-s", 1)[1].split("-", 1)[0]
     if "-linf" in rest:
-        linf = rest.split("-linf", 1)[1].rsplit("-", 1)[0].replace("_", "/")
-    if job_id.endswith("-bcos_top1"):
+        linf_tail = rest.split("-linf", 1)[1]
+        if "-init-" in linf_tail:
+            linf = linf_tail.split("-init-", 1)[0]
+        elif "-" in linf_tail:
+            linf = linf_tail.rsplit("-", 1)[0]
+        else:
+            linf = linf_tail
+        linf = linf.replace("_", "/")
+    if "-init-" in rest:
+        position = rest.rsplit("-init-", 1)[1]
+    elif job_id.endswith("-bcos_top1"):
         position = "bcos_top1"
     elif job_id.endswith("-gradcam"):
         position = "gradcam"
@@ -788,17 +874,33 @@ def chart_job_from_zip(job_id: str, state_job: dict[str, Any], path: Path) -> di
         return None
     parsed = parse_job_id_fields(job_id)
     first = summary_rows[0]
-    model = str(first.get("model") or parsed["model"])
-    patch_size = str(first.get("patch_size") or parsed["patch_size"])
-    position = str(first.get("position_rule") or parsed["position"])
-    linf = parsed["linf"]
-    queries = parse_int(first.get("queries")) or parse_int(manifest.get("queries")) or 10000
+    manifest_config = manifest.get("job_config", {})
+    if not isinstance(manifest_config, dict):
+        manifest_config = {}
+    model = str(manifest_config.get("model") or parsed["model"] or first.get("model"))
+    patch_size = str(manifest_config.get("patch_size") or first.get("patch_size") or parsed["patch_size"])
+    position = str(manifest_config.get("position") or first.get("position_rule") or parsed["position"])
+    linf = str(manifest_config.get("linf") or parsed["linf"])
+    queries = (
+        parse_int(manifest_config.get("queries"))
+        or parse_int(first.get("queries"))
+        or parse_int(manifest.get("queries"))
+        or 10000
+    )
     curve: list[list[float]] = []
+    events: list[list[float]] = []
+    previous_cumulative = 0
     for row in sorted(by_query_rows, key=lambda item: parse_int(item.get("first_success_query")) or 0):
         query = parse_int(row.get("first_success_query"))
         cumulative = parse_int(row.get("cumulative_successes"))
         if query is None or cumulative is None:
             continue
+        new_successes = parse_int(row.get("new_successes"))
+        if new_successes is None:
+            new_successes = max(0, cumulative - previous_cumulative)
+        previous_cumulative = cumulative
+        if new_successes > 0:
+            events.append([float(query), float(new_successes)])
         curve.append([float(query), cumulative / total * 100.0])
     if not curve or curve[-1][0] < queries:
         curve.append([float(queries), adversarial / total * 100.0])
@@ -817,6 +919,7 @@ def chart_job_from_zip(job_id: str, state_job: dict[str, Any], path: Path) -> di
         "success_rate": adversarial / total,
         "success_percent": adversarial / total * 100.0,
         "curve": curve,
+        "events": events,
         "done_at": state_job.get("done_at", ""),
         "elapsed_sec": manifest.get("elapsed_sec", ""),
     }

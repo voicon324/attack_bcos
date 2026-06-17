@@ -31,6 +31,8 @@ def now_iso() -> str:
 def parse_job_fields(job_id: str, job_config: dict[str, Any] | None = None) -> dict[str, Any]:
     job_config = job_config or {}
     rest = job_id.removeprefix("camopatch-bcos-")
+    if rest.startswith("movable-"):
+        rest = rest.removeprefix("movable-")
     model = rest.split("-s", 1)[0]
     patch_size = job_config.get("patch_size", "")
     linf = job_config.get("linf", "")
@@ -42,9 +44,16 @@ def parse_job_fields(job_id: str, job_config: dict[str, Any] | None = None) -> d
     if not linf:
         marker = "-linf"
         if marker in rest:
-            linf = rest.split(marker, 1)[1].split("-", 1)[0].replace("_", "/")
+            linf_tail = rest.split(marker, 1)[1]
+            if "-init-" in linf_tail:
+                linf = linf_tail.split("-init-", 1)[0]
+            else:
+                linf = linf_tail.rsplit("-", 1)[0]
+            linf = linf.replace("_", "/")
     if not position:
-        if job_id.endswith("-bcos_top1"):
+        if "-init-" in rest:
+            position = rest.rsplit("-init-", 1)[1]
+        elif job_id.endswith("-bcos_top1"):
             position = "bcos_top1"
         elif job_id.endswith("-gradcam"):
             position = "gradcam"
