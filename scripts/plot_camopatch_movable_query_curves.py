@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import csv
 import textwrap
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -16,21 +15,25 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
 import seaborn as sns
-from matplotlib.lines import Line2D
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUMMARY_DIR = ROOT / "artifacts" / "analysis" / "camopatch_6models_no_vitc_b_latest"
 
 MODEL_ORDER = ["resnet18", "resnet50", "densenet121", "convnext_tiny", "convnext_base", "vitc_s", "vitc_b"]
-POSITION_ORDER = ["random", "bcos_top1"]
+POSITION_ORDER_BY_MODE = {
+    "fixed": ["random", "bcos_top1", "gradcam"],
+    "movable": ["random", "bcos_top1"],
+}
 POSITION_LABELS = {
-    "random": "Random init",
-    "bcos_top1": "Top1 B-cos init",
+    "random": "Random",
+    "bcos_top1": "Top1 B-cos",
+    "gradcam": "Grad-CAM",
 }
 POSITION_STYLE = {
     "random": {"color": "#5477C4", "linestyle": "-", "marker": "o"},
     "bcos_top1": {"color": "#B8A037", "linestyle": "--", "marker": "s"},
+    "gradcam": {"color": "#BD569B", "linestyle": ":", "marker": "^"},
 }
 DENOMINATOR_FILES = {
     "clean": "success_by_query_clean_correct.csv",
@@ -61,13 +64,13 @@ MONO_FONT_FAMILY = ["DejaVu Sans Mono", "Menlo", "Consolas", "monospace"]
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Save one CamoPatch movable query-curve image per config/model. "
-            "Each image compares random vs top1 init over query count."
+            "Save one CamoPatch query-curve image per config/model. "
+            "Each image compares available patch position rules over query count."
         ),
     )
     parser.add_argument("--summary-dir", type=Path, default=DEFAULT_SUMMARY_DIR)
     parser.add_argument("--output-dir", type=Path, default=None)
-    parser.add_argument("--position-mode", default="movable")
+    parser.add_argument("--position-mode", choices=sorted(POSITION_ORDER_BY_MODE), default="movable")
     parser.add_argument(
         "--denominators",
         nargs="+",
@@ -211,6 +214,18 @@ def rows_for(
     return sorted(selected, key=lambda item: item["first_success_query"])
 
 
+def available_positions_for_key(
+    datasets: dict[str, list[dict[str, Any]]],
+    key: tuple[str, int, str, int, str],
+    positions: list[str],
+) -> list[str]:
+    available: list[str] = []
+    for position in positions:
+        if any(rows_for(rows, key, position) for rows in datasets.values()):
+            available.append(position)
+    return available
+
+
 def curve_points(rows: list[dict[str, Any]], max_queries: int) -> tuple[list[int], list[float], int, int]:
     if not rows:
         return [0, max_queries], [0.0, 0.0], 0, 0
@@ -315,6 +330,7 @@ def draw_panel(
     rows: list[dict[str, Any]],
     key: tuple[str, int, str, int, str],
     denominator: str,
+    positions: list[str],
     query_scale: str,
     symlog_linthresh: float,
     curve_style: str,
@@ -322,8 +338,10 @@ def draw_panel(
 ) -> None:
     max_queries = key[3]
     max_rate = 0.0
-    for position in POSITION_ORDER:
+    for position in positions:
         series_rows = rows_for(rows, key, position)
+        if not series_rows:
+            continue
         x_values, y_values, denom_images, successes = curve_points(series_rows, max_queries)
         max_rate = max(max_rate, max(y_values) if y_values else 0.0)
         style = POSITION_STYLE[position]
@@ -395,6 +413,7 @@ def draw_panel(
 def save_chart(
     datasets: dict[str, list[dict[str, Any]]],
     key: tuple[str, int, str, int, str],
+    positions: list[str],
     output_dir: Path,
     fmt: str,
     dpi: int,
@@ -417,8 +436,10 @@ def save_chart(
         curve_note = "Smoothed monotone curves interpolate cumulative attack success by first-success query; final rates use exact counts."
     else:
         curve_note = "Step curves show exact cumulative attack success by first-success query."
+    position_labels = ", ".join(POSITION_LABELS[position] for position in positions)
     subtitle = (
-        f"{curve_note} Each panel compares movable random init against movable Top1 B-cos init; "
+        f"{curve_note} Each panel compares available {MODE_LABELS.get(key[0], key[0]).lower()} position rules "
+        f"({position_labels}); "
         f"query axis uses {query_scale} scale."
     )
     fig.suptitle(
@@ -432,7 +453,17 @@ def save_chart(
     )
     fig.text(0.055, 0.925, textwrap.fill(subtitle, width=145), ha="left", va="top", fontsize=9, color=TOKENS["muted"])
     for ax, denominator in zip(axes[0], denominators):
-        draw_panel(ax, datasets[denominator], key, denominator, query_scale, symlog_linthresh, curve_style, smooth_points)
+        draw_panel(
+            ax,
+            datasets[denominator],
+            key,
+            denominator,
+            positions,
+            query_scale,
+            symlog_linthresh,
+            curve_style,
+            smooth_points,
+        )
     fig.subplots_adjust(left=0.055, right=0.985, top=0.79, bottom=0.14, wspace=0.14)
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -456,6 +487,7 @@ def write_chart_map(path: Path, rows: list[dict[str, Any]]) -> None:
         "symlog_linthresh",
         "curve_style",
         "smooth_points",
+        "positions",
     ]
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
@@ -467,8 +499,9 @@ def main() -> None:
     args = parse_args()
     use_chart_theme()
     summary_dir = args.summary_dir.resolve()
-    output_dir = (args.output_dir or summary_dir / "charts_movable_query_curves").resolve()
+    output_dir = (args.output_dir or summary_dir / f"charts_{args.position_mode}_query_curves").resolve()
     datasets = load_datasets(summary_dir, args.denominators, args.position_mode)
+    positions = POSITION_ORDER_BY_MODE[args.position_mode]
     keys = sorted(
         {
             full_key(row)
@@ -479,9 +512,11 @@ def main() -> None:
     )
     chart_rows: list[dict[str, Any]] = []
     for key in keys:
+        chart_positions = available_positions_for_key(datasets, key, positions)
         output_path = save_chart(
             datasets,
             key,
+            chart_positions,
             output_dir,
             args.format,
             args.dpi,
@@ -504,6 +539,7 @@ def main() -> None:
                 "symlog_linthresh": args.symlog_linthresh,
                 "curve_style": args.curve_style,
                 "smooth_points": args.smooth_points,
+                "positions": ";".join(chart_positions),
             }
         )
     write_chart_map(output_dir / "chart_map.csv", chart_rows)
