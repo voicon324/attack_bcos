@@ -88,6 +88,18 @@ def parse_args() -> argparse.Namespace:
         default=10.0,
         help="Linear range around zero for --query-scale symlog.",
     )
+    parser.add_argument(
+        "--curve-style",
+        choices=("smooth", "step"),
+        default="smooth",
+        help="Use smooth monotone interpolation for presentation, or exact stair-step curves.",
+    )
+    parser.add_argument(
+        "--smooth-points",
+        type=int,
+        default=450,
+        help="Number of dense points used for smooth curves.",
+    )
     return parser.parse_args()
 
 
@@ -220,6 +232,84 @@ def curve_points(rows: list[dict[str, Any]], max_queries: int) -> tuple[list[int
     return x_values, y_values, denominator, successes
 
 
+def _pchip_endpoint_slope(h0: float, h1: float, m0: float, m1: float) -> float:
+    slope = ((2 * h0 + h1) * m0 - h0 * m1) / (h0 + h1)
+    if np.sign(slope) != np.sign(m0):
+        return 0.0
+    if np.sign(m0) != np.sign(m1) and abs(slope) > abs(3 * m0):
+        return 3 * m0
+    return float(slope)
+
+
+def _pchip_slopes(x_values: np.ndarray, y_values: np.ndarray) -> np.ndarray:
+    h = np.diff(x_values)
+    delta = np.diff(y_values) / h
+    slopes = np.zeros_like(y_values)
+    if len(y_values) == 2:
+        slopes[:] = delta[0]
+        return slopes
+
+    slopes[0] = _pchip_endpoint_slope(h[0], h[1], delta[0], delta[1])
+    slopes[-1] = _pchip_endpoint_slope(h[-1], h[-2], delta[-1], delta[-2])
+    for idx in range(1, len(y_values) - 1):
+        left = delta[idx - 1]
+        right = delta[idx]
+        if left == 0 or right == 0 or np.sign(left) != np.sign(right):
+            slopes[idx] = 0.0
+            continue
+        w1 = 2 * h[idx] + h[idx - 1]
+        w2 = h[idx] + 2 * h[idx - 1]
+        slopes[idx] = (w1 + w2) / (w1 / left + w2 / right)
+    return slopes
+
+
+def smooth_curve_points(
+    x_values: list[int],
+    y_values: list[float],
+    max_queries: int,
+    points: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    if len(x_values) < 3:
+        return np.asarray(x_values, dtype=float), np.asarray(y_values, dtype=float)
+
+    x_array = np.asarray(x_values, dtype=float)
+    y_array = np.asarray(y_values, dtype=float)
+    x_array, unique_indices = np.unique(x_array, return_index=True)
+    y_array = y_array[unique_indices]
+    if len(x_array) < 3:
+        return x_array, y_array
+
+    transformed_x = np.log1p(x_array)
+    dense_count = max(points, len(x_array) * 3, 2)
+    dense_x_t = np.linspace(transformed_x[0], transformed_x[-1], dense_count)
+    slopes = _pchip_slopes(transformed_x, y_array)
+    interval_idx = np.searchsorted(transformed_x, dense_x_t, side="right") - 1
+    interval_idx = np.clip(interval_idx, 0, len(transformed_x) - 2)
+
+    x0 = transformed_x[interval_idx]
+    x1 = transformed_x[interval_idx + 1]
+    y0 = y_array[interval_idx]
+    y1 = y_array[interval_idx + 1]
+    h = x1 - x0
+    t = (dense_x_t - x0) / h
+    t2 = t * t
+    t3 = t2 * t
+    dense_y = (
+        (2 * t3 - 3 * t2 + 1) * y0
+        + (t3 - 2 * t2 + t) * h * slopes[interval_idx]
+        + (-2 * t3 + 3 * t2) * y1
+        + (t3 - t2) * h * slopes[interval_idx + 1]
+    )
+    dense_y = np.maximum.accumulate(np.clip(dense_y, 0.0, 1.0))
+    dense_y[0] = y_array[0]
+    dense_y[-1] = y_array[-1]
+
+    dense_x = np.expm1(dense_x_t)
+    dense_x[0] = 0.0
+    dense_x[-1] = float(max_queries)
+    return dense_x, dense_y
+
+
 def draw_panel(
     ax: plt.Axes,
     rows: list[dict[str, Any]],
@@ -227,6 +317,8 @@ def draw_panel(
     denominator: str,
     query_scale: str,
     symlog_linthresh: float,
+    curve_style: str,
+    smooth_points: int,
 ) -> None:
     max_queries = key[3]
     max_rate = 0.0
@@ -238,23 +330,38 @@ def draw_panel(
         label = POSITION_LABELS[position]
         if denom_images:
             label = f"{label} ({successes}/{denom_images}, {y_values[-1] * 100:.1f}%)"
-        ax.step(
-            x_values,
-            y_values,
-            where="post",
-            label=label,
-            color=style["color"],
-            linestyle=style["linestyle"],
-            linewidth=1.7,
-        )
-        if len(x_values) > 2:
-            marker_idx = np.linspace(1, len(x_values) - 1, num=min(9, len(x_values) - 1), dtype=int)
+        if curve_style == "smooth":
+            plot_x, plot_y = smooth_curve_points(x_values, y_values, max_queries, smooth_points)
             ax.plot(
-                [x_values[idx] for idx in marker_idx],
-                [y_values[idx] for idx in marker_idx],
+                plot_x,
+                plot_y,
+                label=label,
+                color=style["color"],
+                linestyle=style["linestyle"],
+                linewidth=1.9,
+            )
+            marker_source_x = plot_x
+            marker_source_y = plot_y
+        else:
+            ax.step(
+                x_values,
+                y_values,
+                where="post",
+                label=label,
+                color=style["color"],
+                linestyle=style["linestyle"],
+                linewidth=1.7,
+            )
+            marker_source_x = np.asarray(x_values, dtype=float)
+            marker_source_y = np.asarray(y_values, dtype=float)
+        if len(marker_source_x) > 2:
+            marker_idx = np.linspace(1, len(marker_source_x) - 1, num=min(9, len(marker_source_x) - 1), dtype=int)
+            ax.plot(
+                marker_source_x[marker_idx],
+                marker_source_y[marker_idx],
                 linestyle="none",
                 marker=style["marker"],
-                markersize=3.2,
+                markersize=3.1,
                 markerfacecolor=style["color"],
                 markeredgecolor=style["color"],
             )
@@ -293,6 +400,8 @@ def save_chart(
     dpi: int,
     query_scale: str,
     symlog_linthresh: float,
+    curve_style: str,
+    smooth_points: int,
 ) -> Path:
     denominators = list(datasets)
     fig, axes = plt.subplots(
@@ -304,9 +413,12 @@ def save_chart(
     )
     fig.patch.set_facecolor(TOKENS["surface"])
     title = chart_title(key)
+    if curve_style == "smooth":
+        curve_note = "Smoothed monotone curves interpolate cumulative attack success by first-success query; final rates use exact counts."
+    else:
+        curve_note = "Step curves show exact cumulative attack success by first-success query."
     subtitle = (
-        "Step curves show cumulative attack success by first-success query. "
-        "Each panel compares movable random init against movable Top1 B-cos init; "
+        f"{curve_note} Each panel compares movable random init against movable Top1 B-cos init; "
         f"query axis uses {query_scale} scale."
     )
     fig.suptitle(
@@ -320,7 +432,7 @@ def save_chart(
     )
     fig.text(0.055, 0.925, textwrap.fill(subtitle, width=145), ha="left", va="top", fontsize=9, color=TOKENS["muted"])
     for ax, denominator in zip(axes[0], denominators):
-        draw_panel(ax, datasets[denominator], key, denominator, query_scale, symlog_linthresh)
+        draw_panel(ax, datasets[denominator], key, denominator, query_scale, symlog_linthresh, curve_style, smooth_points)
     fig.subplots_adjust(left=0.055, right=0.985, top=0.79, bottom=0.14, wspace=0.14)
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -342,6 +454,8 @@ def write_chart_map(path: Path, rows: list[dict[str, Any]]) -> None:
         "denominators",
         "query_scale",
         "symlog_linthresh",
+        "curve_style",
+        "smooth_points",
     ]
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
@@ -373,6 +487,8 @@ def main() -> None:
             args.dpi,
             args.query_scale,
             args.symlog_linthresh,
+            args.curve_style,
+            args.smooth_points,
         )
         chart_rows.append(
             {
@@ -386,6 +502,8 @@ def main() -> None:
                 "denominators": ";".join(args.denominators),
                 "query_scale": args.query_scale,
                 "symlog_linthresh": args.symlog_linthresh,
+                "curve_style": args.curve_style,
+                "smooth_points": args.smooth_points,
             }
         )
     write_chart_map(output_dir / "chart_map.csv", chart_rows)
