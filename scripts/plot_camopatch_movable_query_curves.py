@@ -100,8 +100,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--smooth-points",
         type=int,
-        default=450,
+        default=900,
         help="Number of dense points used for smooth curves.",
+    )
+    parser.add_argument(
+        "--smooth-window",
+        type=int,
+        default=31,
+        help="Odd rolling window over dense log-query points for presentation smoothing. Use 1 to disable.",
     )
     return parser.parse_args()
 
@@ -278,11 +284,29 @@ def _pchip_slopes(x_values: np.ndarray, y_values: np.ndarray) -> np.ndarray:
     return slopes
 
 
+def smooth_monotone_values(y_values: np.ndarray, window: int) -> np.ndarray:
+    if window <= 1 or len(y_values) < 5:
+        return y_values
+    if window % 2 == 0:
+        window += 1
+    window = min(window, len(y_values) if len(y_values) % 2 == 1 else len(y_values) - 1)
+    if window < 3:
+        return y_values
+
+    half = window // 2
+    ramp = np.arange(1, half + 2, dtype=float)
+    kernel = np.concatenate([ramp, ramp[-2::-1]])
+    kernel /= kernel.sum()
+    padded = np.pad(y_values, (half, half), mode="edge")
+    return np.convolve(padded, kernel, mode="valid")
+
+
 def smooth_curve_points(
     x_values: list[int],
     y_values: list[float],
     max_queries: int,
     points: int,
+    window: int,
 ) -> tuple[np.ndarray, np.ndarray]:
     if len(x_values) < 3:
         return np.asarray(x_values, dtype=float), np.asarray(y_values, dtype=float)
@@ -315,7 +339,8 @@ def smooth_curve_points(
         + (-2 * t3 + 3 * t2) * y1
         + (t3 - t2) * h * slopes[interval_idx + 1]
     )
-    dense_y = np.maximum.accumulate(np.clip(dense_y, 0.0, 1.0))
+    dense_y = smooth_monotone_values(np.clip(dense_y, 0.0, 1.0), window)
+    dense_y = np.maximum.accumulate(np.minimum(dense_y, y_array[-1]))
     dense_y[0] = y_array[0]
     dense_y[-1] = y_array[-1]
 
@@ -335,6 +360,7 @@ def draw_panel(
     symlog_linthresh: float,
     curve_style: str,
     smooth_points: int,
+    smooth_window: int,
 ) -> None:
     max_queries = key[3]
     max_rate = 0.0
@@ -349,7 +375,7 @@ def draw_panel(
         if denom_images:
             label = f"{label} ({successes}/{denom_images}, {y_values[-1] * 100:.1f}%)"
         if curve_style == "smooth":
-            plot_x, plot_y = smooth_curve_points(x_values, y_values, max_queries, smooth_points)
+            plot_x, plot_y = smooth_curve_points(x_values, y_values, max_queries, smooth_points, smooth_window)
             ax.plot(
                 plot_x,
                 plot_y,
@@ -357,9 +383,13 @@ def draw_panel(
                 color=style["color"],
                 linestyle=style["linestyle"],
                 linewidth=1.9,
+                solid_capstyle="round",
+                solid_joinstyle="round",
+                dash_capstyle="round",
+                dash_joinstyle="round",
             )
-            marker_source_x = plot_x
-            marker_source_y = plot_y
+            marker_source_x = np.asarray([], dtype=float)
+            marker_source_y = np.asarray([], dtype=float)
         else:
             ax.step(
                 x_values,
@@ -421,6 +451,7 @@ def save_chart(
     symlog_linthresh: float,
     curve_style: str,
     smooth_points: int,
+    smooth_window: int,
 ) -> Path:
     denominators = list(datasets)
     fig, axes = plt.subplots(
@@ -433,7 +464,7 @@ def save_chart(
     fig.patch.set_facecolor(TOKENS["surface"])
     title = chart_title(key)
     if curve_style == "smooth":
-        curve_note = "Smoothed monotone curves interpolate cumulative attack success by first-success query; final rates use exact counts."
+        curve_note = "Presentation-smoothed monotone curves show cumulative attack success by first-success query; final rates use exact counts."
     else:
         curve_note = "Step curves show exact cumulative attack success by first-success query."
     position_labels = ", ".join(POSITION_LABELS[position] for position in positions)
@@ -463,6 +494,7 @@ def save_chart(
             symlog_linthresh,
             curve_style,
             smooth_points,
+            smooth_window,
         )
     fig.subplots_adjust(left=0.055, right=0.985, top=0.79, bottom=0.14, wspace=0.14)
 
@@ -487,6 +519,7 @@ def write_chart_map(path: Path, rows: list[dict[str, Any]]) -> None:
         "symlog_linthresh",
         "curve_style",
         "smooth_points",
+        "smooth_window",
         "positions",
     ]
     with path.open("w", newline="", encoding="utf-8") as handle:
@@ -524,6 +557,7 @@ def main() -> None:
             args.symlog_linthresh,
             args.curve_style,
             args.smooth_points,
+            args.smooth_window,
         )
         chart_rows.append(
             {
@@ -539,6 +573,7 @@ def main() -> None:
                 "symlog_linthresh": args.symlog_linthresh,
                 "curve_style": args.curve_style,
                 "smooth_points": args.smooth_points,
+                "smooth_window": args.smooth_window,
                 "positions": ";".join(chart_positions),
             }
         )
