@@ -76,6 +76,18 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--dpi", type=int, default=180)
     parser.add_argument("--format", choices=("png", "svg"), default="png")
+    parser.add_argument(
+        "--query-scale",
+        choices=("linear", "symlog"),
+        default="symlog",
+        help="Scale for the query axis. symlog preserves query 0 while using log-like spacing after --symlog-linthresh.",
+    )
+    parser.add_argument(
+        "--symlog-linthresh",
+        type=float,
+        default=10.0,
+        help="Linear range around zero for --query-scale symlog.",
+    )
     return parser.parse_args()
 
 
@@ -213,6 +225,8 @@ def draw_panel(
     rows: list[dict[str, Any]],
     key: tuple[str, int, str, int, str],
     denominator: str,
+    query_scale: str,
+    symlog_linthresh: float,
 ) -> None:
     max_queries = key[3]
     max_rate = 0.0
@@ -248,9 +262,19 @@ def draw_panel(
     ax.set_xlim(0, max_queries)
     ax.set_ylim(0, upper)
     ax.set_title(DENOMINATOR_LABELS[denominator], fontsize=10.5, color=TOKENS["ink"], pad=8)
-    ax.set_xlabel("Query")
+    if query_scale == "symlog":
+        ax.set_xscale("symlog", linthresh=symlog_linthresh, linscale=1.0)
+        ticks = [0, 1, 10, 100, 1000, max_queries]
+        ticks = sorted({tick for tick in ticks if 0 <= tick <= max_queries})
+        ax.xaxis.set_major_locator(mticker.FixedLocator(ticks))
+        ax.xaxis.set_major_formatter(
+            mticker.FuncFormatter(lambda value, _pos: "0" if value == 0 else f"{int(value):,}")
+        )
+        ax.set_xlabel(f"Query (symlog, linear <= {symlog_linthresh:g})")
+    else:
+        ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=6, integer=True))
+        ax.set_xlabel("Query")
     ax.set_ylabel("Cumulative success rate")
-    ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=6, integer=True))
     ax.yaxis.set_major_formatter(mticker.PercentFormatter(1.0))
     ax.tick_params(axis="both", labelsize=8.5, colors=TOKENS["muted"])
     ax.grid(axis="y", color=TOKENS["grid"], linewidth=0.8)
@@ -267,6 +291,8 @@ def save_chart(
     output_dir: Path,
     fmt: str,
     dpi: int,
+    query_scale: str,
+    symlog_linthresh: float,
 ) -> Path:
     denominators = list(datasets)
     fig, axes = plt.subplots(
@@ -280,7 +306,8 @@ def save_chart(
     title = chart_title(key)
     subtitle = (
         "Step curves show cumulative attack success by first-success query. "
-        "Each panel compares movable random init against movable Top1 B-cos init."
+        "Each panel compares movable random init against movable Top1 B-cos init; "
+        f"query axis uses {query_scale} scale."
     )
     fig.suptitle(
         textwrap.fill(title, width=120),
@@ -293,7 +320,7 @@ def save_chart(
     )
     fig.text(0.055, 0.925, textwrap.fill(subtitle, width=145), ha="left", va="top", fontsize=9, color=TOKENS["muted"])
     for ax, denominator in zip(axes[0], denominators):
-        draw_panel(ax, datasets[denominator], key, denominator)
+        draw_panel(ax, datasets[denominator], key, denominator, query_scale, symlog_linthresh)
     fig.subplots_adjust(left=0.055, right=0.985, top=0.79, bottom=0.14, wspace=0.14)
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -304,7 +331,18 @@ def save_chart(
 
 
 def write_chart_map(path: Path, rows: list[dict[str, Any]]) -> None:
-    fieldnames = ["chart", "position_mode", "patch_size", "linf", "queries", "model", "image_path", "denominators"]
+    fieldnames = [
+        "chart",
+        "position_mode",
+        "patch_size",
+        "linf",
+        "queries",
+        "model",
+        "image_path",
+        "denominators",
+        "query_scale",
+        "symlog_linthresh",
+    ]
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
@@ -327,7 +365,15 @@ def main() -> None:
     )
     chart_rows: list[dict[str, Any]] = []
     for key in keys:
-        output_path = save_chart(datasets, key, output_dir, args.format, args.dpi)
+        output_path = save_chart(
+            datasets,
+            key,
+            output_dir,
+            args.format,
+            args.dpi,
+            args.query_scale,
+            args.symlog_linthresh,
+        )
         chart_rows.append(
             {
                 "chart": chart_slug(key),
@@ -338,6 +384,8 @@ def main() -> None:
                 "model": key[4],
                 "image_path": str(output_path),
                 "denominators": ";".join(args.denominators),
+                "query_scale": args.query_scale,
+                "symlog_linthresh": args.symlog_linthresh,
             }
         )
     write_chart_map(output_dir / "chart_map.csv", chart_rows)
