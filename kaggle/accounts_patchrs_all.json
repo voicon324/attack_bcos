@@ -1,0 +1,69 @@
+{
+  "accounts": [
+    {
+      "name": "main",
+      "kaggle_json": "artifacts/secrets/kaggle.json",
+      "max_running": 2
+    },
+    {
+      "name": "dora",
+      "kaggle_json": "artifacts/secrets/kaggle_dora.json",
+      "max_running": 2
+    },
+    {
+      "name": "diepcube",
+      "kaggle_json": "artifacts/secrets/kaggle_diepcube.json",
+      "max_running": 2
+    },
+    {
+      "name": "family",
+      "kaggle_json": "artifacts/secrets/kaggle_family.json",
+      "max_running": 2
+    },
+    {
+      "name": "khoa1",
+      "kaggle_json": "artifacts/secrets/kaggle_khoa1.json",
+      "max_running": 2
+    },
+    {
+      "name": "ma1",
+      "kaggle_json": "artifacts/secrets/kaggle_ma1.json",
+      "max_running": 2
+    },
+    {
+      "name": "ma2",
+      "kaggle_json": "artifacts/secrets/kaggle_ma2.json",
+      "max_running": 2
+    },
+    {
+      "name": "md1",
+      "kaggle_json": "artifacts/secrets/kaggle_md1.json",
+      "max_running": 2
+    },
+    {
+      "name": "md2",
+      "kaggle_json": "artifacts/secrets/kaggle_md2.json",
+      "max_running": 2
+    },
+    {
+      "name": "md3",
+      "kaggle_json": "artifacts/secrets/kaggle_md3.json",
+      "max_running": 2
+    },
+    {
+      "name": "md4",
+      "kaggle_json": "artifacts/secrets/kaggle_md4.json",
+      "max_running": 2
+    },
+    {
+      "name": "mduy1",
+      "kaggle_json": "artifacts/secrets/kaggle_mduy1.json",
+      "max_running": 2
+    },
+    {
+      "name": "mduy2",
+      "kaggle_json": "artifacts/secrets/kaggle_mduy2.json",
+      "max_running": 2
+    }
+  ]
+}
