@@ -1,0 +1,2 @@
+Vendored from https://github.com/ethan-iai/LaVan-Pytorch at commit f94dd6ff1b7549876daa44bb12d0a6b894a0b335
+Local copy normalizes line endings and trailing whitespace only.

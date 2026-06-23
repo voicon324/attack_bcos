@@ -206,6 +206,9 @@ def attack_key_for(config: dict) -> str:
         "patchrs": "patchrs",
         "sparse-rs": "patchrs",
         "sparsers": "patchrs",
+        "lavan": "lavan",
+        "lavan-pytorch": "lavan",
+        "localized-visible": "lavan",
     }
     try:
         return mapping[attack]
@@ -234,6 +237,8 @@ def attack_script_for(repo: Path, config: dict) -> Path:
         script = repo / "CamoPatch" / "ConCamoPatchBatch.py"
     elif attack == "patchrs":
         script = repo / "PatchRS" / "ConPatchRSBatch.py"
+    elif attack == "lavan":
+        script = repo / "LaVAN" / "ConLaVANBatch.py"
     else:
         raise AssertionError(f"Unhandled attack key: {attack}")
     if not script.is_file():
@@ -453,6 +458,16 @@ def main() -> None:
             cmd.append("--no-rescale-schedule")
         if bool(config.get("inverse_location_schedule", False)):
             cmd.append("--inverse-location-schedule")
+    elif attack == "lavan":
+        for config_key, flag in (
+            ("step_size", "--step-size"),
+            ("gradient_mode", "--gradient-mode"),
+            ("patch_init", "--patch-init"),
+            ("li", "--li"),
+            ("location_update_period", "--li"),
+        ):
+            if config_key in config:
+                cmd.extend([flag, str(config[config_key])])
     if bool(config.get("fixed_position", True)):
         cmd.append("--fixed-position")
     if not bool(config.get("save_images", False)):

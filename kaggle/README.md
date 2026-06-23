@@ -1,4 +1,4 @@
-# CamoPatch And Patch-RS Kaggle Runs
+# CamoPatch, Patch-RS, And LaVAN Kaggle Runs
 
 ## Generate Jobs
 
@@ -39,6 +39,22 @@ python scripts/generate_patchrs_movable_kaggle_jobs.py \
 Patch-RS jobs use `attack=patchrs`, Sparse-RS `random_squares` patch
 initialization by default, and the shared Kaggle runner dispatches them to
 `PatchRS/ConPatchRSBatch.py`. Output zips use the same contract as CamoPatch.
+
+Generate LaVAN queues with the same B-cos models, transforms, initial position
+rules, `L_inf` budgets, Pro 6000 shape, and offline Kaggle sources:
+
+```bash
+python scripts/generate_lavan_kaggle_jobs.py \
+  --output kaggle/lavan_jobs.json
+
+python scripts/generate_lavan_movable_kaggle_jobs.py \
+  --output kaggle/lavan_movable_s16_linf64_jobs.json
+```
+
+LaVAN jobs use `attack=lavan`, random initialization inside the configured
+`L_inf` ball, and dispatch to `LaVAN/ConLaVANBatch.py`. The `queries` field is
+the white-box optimization iteration/eval count, defaulting to 500. Output zips
+use the same contract as CamoPatch and Patch-RS.
 
 ## Accounts
 

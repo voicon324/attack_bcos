@@ -4,12 +4,14 @@ Read this file first in any new Codex/chat session before touching Kaggle.
 
 ## Goal
 
-Run and monitor the CamoPatch and Patch-RS B-cos Kaggle matrices from this repo.
+Run and monitor the CamoPatch, Patch-RS, and LaVAN B-cos Kaggle matrices from this repo.
 
 - Main fixed-position queue: `kaggle/camopatch_jobs.json`
 - Movable-position queue: `kaggle/camopatch_movable_s16_linf64_jobs.json`
 - Patch-RS fixed-position queue: `kaggle/patchrs_jobs.json`
 - Patch-RS movable-position queue: `kaggle/patchrs_movable_s16_linf64_jobs.json`
+- LaVAN fixed-position queue: `kaggle/lavan_jobs.json`
+- LaVAN movable-position queue: `kaggle/lavan_movable_s16_linf64_jobs.json`
 - Scheduler: `scripts/run_kaggle_scheduler.py`
 - Main fixed run root: `kaggle_runs_success_query_full`
 - Movable run root: `kaggle_runs_movable_s16_linf64`
@@ -226,6 +228,30 @@ Patch-RS uses the same transforms and position rules as CamoPatch:
 - movable: `random`, `bcos_top1`, `fixed_position=false`
 - default patch initialization: Sparse-RS `random_squares`
 
+LaVAN fixed queue, 171 jobs:
+
+```bash
+python scripts/generate_lavan_kaggle_jobs.py --dry-run
+python scripts/generate_lavan_kaggle_jobs.py \
+  --output kaggle/lavan_jobs.json
+```
+
+LaVAN movable queue, 14 jobs:
+
+```bash
+python scripts/generate_lavan_movable_kaggle_jobs.py --dry-run
+python scripts/generate_lavan_movable_kaggle_jobs.py \
+  --output kaggle/lavan_movable_s16_linf64_jobs.json
+```
+
+LaVAN uses the same transforms and position rules as CamoPatch:
+
+- `Resize(224) -> CenterCrop(224) -> ToTensor()`
+- fixed: `random`, `bcos_top1`, `gradcam`, with no ViTC `gradcam`
+- movable: `random`, `bcos_top1`, `fixed_position=false`
+- default patch initialization: random inside the configured `L_inf` ball
+- default `queries=500`, interpreted as white-box optimization iterations/evals
+
 ## Update Code Dataset After Code Changes
 
 If code changes were made, push to GitHub first. Immediately after a successful
@@ -363,6 +389,43 @@ python scripts/run_kaggle_scheduler.py \
   --jobs-config /tmp/patchrs_smoke_jobs.json \
   --accounts-config kaggle/accounts.example.json \
   --run-root kaggle_runs_patchrs_smoke \
+  --max-submit 1 \
+  --once
+```
+
+## Submit Or Resume LaVAN Queues
+
+Use separate run roots from CamoPatch and Patch-RS:
+
+```bash
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config kaggle/lavan_jobs.json \
+  --accounts-config kaggle/accounts.example.json \
+  --run-root kaggle_runs_lavan_full \
+  --poll-interval 300
+```
+
+Movable LaVAN:
+
+```bash
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config kaggle/lavan_movable_s16_linf64_jobs.json \
+  --accounts-config kaggle/accounts_movable_md.json \
+  --run-root kaggle_runs_lavan_movable_s16_linf64 \
+  --poll-interval 300
+```
+
+Smoke LaVAN:
+
+```bash
+python scripts/generate_lavan_kaggle_jobs.py \
+  --smoke \
+  --output /tmp/lavan_smoke_jobs.json
+
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config /tmp/lavan_smoke_jobs.json \
+  --accounts-config kaggle/accounts.example.json \
+  --run-root kaggle_runs_lavan_smoke \
   --max-submit 1 \
   --once
 ```
