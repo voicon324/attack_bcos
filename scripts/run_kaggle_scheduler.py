@@ -124,6 +124,7 @@ def sanitize_slug(value: str) -> str:
 def short_slug(job_id: str) -> str:
     slug = sanitize_slug(job_id)
     slug = slug.replace("camopatch-bcos-", "cb-")
+    slug = slug.replace("patchrs-bcos-", "pr-")
     # Kaggle rejects long kernel slugs with a generic 400. Leave room for
     # "-<timestamp>" appended by stage_kernel.
     return slug[:39].strip("-")

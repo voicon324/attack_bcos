@@ -17,6 +17,7 @@ from typing import Iterable
 DEFAULT_CONFIG = "job_config.json"
 DEFAULT_CODE_DATASET = "attack-bcos-github"
 DEFAULT_CODE_OWNER = "hkhnhduy"
+DEFAULT_KAGGLE_WORKING = Path("/kaggle/working")
 DEFAULT_RESULT_ROOT = Path("/kaggle/working/result")
 DEFAULT_WORK_REPO = Path("/kaggle/working/attack_bcos")
 
@@ -52,6 +53,14 @@ def load_config(path: Path) -> dict:
     if missing:
         raise ValueError(f"{path} is missing required keys: {', '.join(missing)}")
     return config
+
+
+def kaggle_working_dir(config: dict) -> Path:
+    return Path(config.get("kaggle_working_dir", DEFAULT_KAGGLE_WORKING))
+
+
+def result_root_for(config: dict) -> Path:
+    return Path(config.get("result_root", kaggle_working_dir(config) / "result"))
 
 
 def candidate_code_roots(config: dict) -> Iterable[Path]:
@@ -188,6 +197,22 @@ def find_bcos_weights_dir() -> Path | None:
     return None
 
 
+def attack_key_for(config: dict) -> str:
+    attack = str(config.get("attack", "camopatch")).strip().lower().replace("_", "-")
+    mapping = {
+        "camo": "camopatch",
+        "camopatch": "camopatch",
+        "patch-rs": "patchrs",
+        "patchrs": "patchrs",
+        "sparse-rs": "patchrs",
+        "sparsers": "patchrs",
+    }
+    try:
+        return mapping[attack]
+    except KeyError as exc:
+        raise ValueError(f"Unsupported attack: {config.get('attack')}") from exc
+
+
 def position_rule_for(config: dict) -> str:
     position = str(config["position"]).strip().lower().replace("-", "_")
     mapping = {
@@ -201,6 +226,19 @@ def position_rule_for(config: dict) -> str:
         return mapping[position]
     except KeyError as exc:
         raise ValueError(f"Unsupported position: {config['position']}") from exc
+
+
+def attack_script_for(repo: Path, config: dict) -> Path:
+    attack = attack_key_for(config)
+    if attack == "camopatch":
+        script = repo / "CamoPatch" / "ConCamoPatchBatch.py"
+    elif attack == "patchrs":
+        script = repo / "PatchRS" / "ConPatchRSBatch.py"
+    else:
+        raise AssertionError(f"Unhandled attack key: {attack}")
+    if not script.is_file():
+        raise FileNotFoundError(f"Attack runner not found: {script}")
+    return script
 
 
 def run_command(cmd: list[str], cwd: Path, log_path: Path, env: dict[str, str]) -> int:
@@ -276,10 +314,11 @@ def write_bundle_zip(zip_path: Path, run_dir: Path, extra_files: Iterable[Path])
 
 def run_bundle(config: dict) -> int:
     bundle_id = str(config["job_id"])
-    run_dir = Path("/kaggle/working") / bundle_id
+    working_dir = kaggle_working_dir(config)
+    run_dir = working_dir / bundle_id
     run_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = run_dir / "bundle_manifest.json"
-    zip_path = Path("/kaggle/working") / f"{bundle_id}_bundle_result.zip"
+    zip_path = working_dir / f"{bundle_id}_bundle_result.zip"
     repo = prepare_work_repo(config)
     runner = Path(__file__).resolve()
     started = time.time()
@@ -341,13 +380,14 @@ def main() -> None:
         raise SystemExit(run_bundle(config))
 
     job_id = str(config["job_id"])
-    run_dir = Path("/kaggle/working") / job_id
+    working_dir = kaggle_working_dir(config)
+    run_dir = working_dir / job_id
     run_dir.mkdir(parents=True, exist_ok=True)
-    result_dir = DEFAULT_RESULT_ROOT / job_id
+    result_dir = result_root_for(config) / job_id
     result_dir.mkdir(parents=True, exist_ok=True)
     run_log = run_dir / "run.log"
     manifest_path = run_dir / "manifest.json"
-    zip_path = Path("/kaggle/working") / f"{job_id}_result.zip"
+    zip_path = working_dir / f"{job_id}_result.zip"
 
     started = time.time()
     repo = prepare_work_repo(config)
@@ -361,10 +401,11 @@ def main() -> None:
         env.setdefault("WEIGHTS_DIR", str(bcos_weights_dir))
     env["PYTHONUNBUFFERED"] = "1"
 
+    attack = attack_key_for(config)
     cmd = [
         sys.executable,
         "-u",
-        str(repo / "CamoPatch" / "ConCamoPatchBatch.py"),
+        str(attack_script_for(repo, config)),
         "--images-csv",
         str(images_csv),
         "--save-root",
@@ -386,6 +427,32 @@ def main() -> None:
         "--position-rule",
         position_rule_for(config),
     ]
+    if attack == "camopatch":
+        for config_key, flag in (
+            ("N", "--N"),
+            ("temp", "--temp"),
+            ("mut", "--mut"),
+            ("li", "--li"),
+            ("location_update_period", "--li"),
+        ):
+            if config_key in config:
+                cmd.extend([flag, str(config[config_key])])
+    elif attack == "patchrs":
+        for config_key, flag in (
+            ("alpha_init", "--alpha-init"),
+            ("patch_init", "--patch-init"),
+            ("patch_init_iters", "--patch-init-iters"),
+            ("li", "--li"),
+            ("location_update_period", "--li"),
+        ):
+            if config_key in config:
+                cmd.extend([flag, str(config[config_key])])
+        if bool(config.get("constant_schedule", False)):
+            cmd.append("--constant-schedule")
+        if not bool(config.get("rescale_schedule", True)):
+            cmd.append("--no-rescale-schedule")
+        if bool(config.get("inverse_location_schedule", False)):
+            cmd.append("--inverse-location-schedule")
     if bool(config.get("fixed_position", True)):
         cmd.append("--fixed-position")
     if not bool(config.get("save_images", False)):

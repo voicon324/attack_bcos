@@ -46,6 +46,7 @@ MODEL_ORDER = [
 ]
 
 DETAIL_FIELDNAMES = [
+    "attack",
     "run_name",
     "position_mode",
     "move_allowed",
@@ -90,6 +91,7 @@ DETAIL_FIELDNAMES = [
 ]
 
 GROUP_KEYS = [
+    "attack",
     "position_mode",
     "move_allowed",
     "model",
@@ -472,6 +474,7 @@ def aggregate_runs(
                 )
                 continue
             job_position = str(config.get("position") or rows[0].get("position_rule") or "")
+            attack = str(config.get("attack") or rows[0].get("attack") or "camopatch").strip() or "camopatch"
             job_linf = str(config.get("linf") or "")
             job_patch_size = as_int(config.get("patch_size") or rows[0].get("patch_size"), 0) or 0
             job_queries = as_int(config.get("queries") or rows[0].get("queries"), 0) or 0
@@ -488,6 +491,7 @@ def aggregate_runs(
                 job_successes += adversarial
                 detail_rows.append(
                     {
+                        "attack": attack,
                         "run_name": run_name,
                         "position_mode": position_mode,
                         "move_allowed": move_allowed,
@@ -535,6 +539,7 @@ def aggregate_runs(
                 )
             included_jobs.append(
                 {
+                    "attack": attack,
                     "run_name": run_name,
                     "position_mode": position_mode,
                     "move_allowed": move_allowed,

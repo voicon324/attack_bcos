@@ -109,6 +109,11 @@ def parse_args() -> argparse.Namespace:
         default=31,
         help="Odd rolling window over dense log-query points for presentation smoothing. Use 1 to disable.",
     )
+    parser.add_argument(
+        "--attack",
+        default="camopatch",
+        help="Attack to plot from aggregated summaries: camopatch, patchrs, or all.",
+    )
     return parser.parse_args()
 
 
@@ -135,17 +140,21 @@ def use_chart_theme() -> None:
     )
 
 
-def read_query_curve(path: Path, position_mode: str) -> list[dict[str, Any]]:
+def read_query_curve(path: Path, position_mode: str, attack: str) -> list[dict[str, Any]]:
     if not path.is_file():
         raise FileNotFoundError(path)
     with path.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     parsed: list[dict[str, Any]] = []
     for row in rows:
+        row_attack = (row.get("attack") or "camopatch").strip() or "camopatch"
+        if attack != "all" and row_attack != attack:
+            continue
         if row["position_mode"] != position_mode:
             continue
         parsed.append(
             {
+                "attack": row_attack,
                 "position_mode": row["position_mode"],
                 "move_allowed": int(float(row["move_allowed"])),
                 "model": row["model"],
@@ -164,9 +173,9 @@ def read_query_curve(path: Path, position_mode: str) -> list[dict[str, Any]]:
     return parsed
 
 
-def load_datasets(summary_dir: Path, denominators: list[str], position_mode: str) -> dict[str, list[dict[str, Any]]]:
+def load_datasets(summary_dir: Path, denominators: list[str], position_mode: str, attack: str) -> dict[str, list[dict[str, Any]]]:
     return {
-        denominator: read_query_curve(summary_dir / DENOMINATOR_FILES[denominator], position_mode)
+        denominator: read_query_curve(summary_dir / DENOMINATOR_FILES[denominator], position_mode, attack)
         for denominator in denominators
     }
 
@@ -533,7 +542,7 @@ def main() -> None:
     use_chart_theme()
     summary_dir = args.summary_dir.resolve()
     output_dir = (args.output_dir or summary_dir / f"charts_{args.position_mode}_query_curves").resolve()
-    datasets = load_datasets(summary_dir, args.denominators, args.position_mode)
+    datasets = load_datasets(summary_dir, args.denominators, args.position_mode, args.attack)
     positions = POSITION_ORDER_BY_MODE[args.position_mode]
     keys = sorted(
         {

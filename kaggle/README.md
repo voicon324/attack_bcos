@@ -1,4 +1,4 @@
-# CamoPatch Kaggle Runs
+# CamoPatch And Patch-RS Kaggle Runs
 
 ## Generate Jobs
 
@@ -24,6 +24,21 @@ This writes 14 jobs: the same 7 B-cos models, init positions `random` and
 validates and zips `summary.csv`, `success_events.csv`, `success_by_query.csv`,
 and per-image `.npy` files, including `first_success_query` and final patch
 coordinates.
+
+Generate Patch-RS patch-only queues with the same transforms, model matrix,
+position rules, `L_inf` budgets, Pro 6000 shape, and offline Kaggle sources:
+
+```bash
+python scripts/generate_patchrs_kaggle_jobs.py \
+  --output kaggle/patchrs_jobs.json
+
+python scripts/generate_patchrs_movable_kaggle_jobs.py \
+  --output kaggle/patchrs_movable_s16_linf64_jobs.json
+```
+
+Patch-RS jobs use `attack=patchrs`, Sparse-RS `random_squares` patch
+initialization by default, and the shared Kaggle runner dispatches them to
+`PatchRS/ConPatchRSBatch.py`. Output zips use the same contract as CamoPatch.
 
 ## Accounts
 

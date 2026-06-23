@@ -1,0 +1,2 @@
+Vendored from https://github.com/fra31/sparse-rs at commit 21d875969a1455e4d5b26dcf32c843e6262d1f9c
+Local copy normalizes line endings and trailing whitespace only.

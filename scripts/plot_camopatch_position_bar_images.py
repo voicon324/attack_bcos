@@ -78,6 +78,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--dpi", type=int, default=180)
     parser.add_argument("--format", choices=("png", "svg"), default="png")
+    parser.add_argument(
+        "--attack",
+        default="camopatch",
+        help="Attack to plot from aggregated summaries: camopatch, patchrs, or all.",
+    )
     return parser.parse_args()
 
 
@@ -105,15 +110,19 @@ def use_chart_theme() -> None:
     )
 
 
-def read_summary(path: Path) -> list[dict[str, Any]]:
+def read_summary(path: Path, attack: str) -> list[dict[str, Any]]:
     if not path.is_file():
         raise FileNotFoundError(path)
     with path.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     parsed: list[dict[str, Any]] = []
     for row in rows:
+        row_attack = (row.get("attack") or "camopatch").strip() or "camopatch"
+        if attack != "all" and row_attack != attack:
+            continue
         parsed.append(
             {
+                "attack": row_attack,
                 "position_mode": row["position_mode"],
                 "move_allowed": int(float(row["move_allowed"])),
                 "model": row["model"],
@@ -131,8 +140,8 @@ def read_summary(path: Path) -> list[dict[str, Any]]:
     return parsed
 
 
-def load_datasets(summary_dir: Path, denominators: list[str]) -> dict[str, list[dict[str, Any]]]:
-    return {name: read_summary(summary_dir / DENOMINATOR_FILES[name]) for name in denominators}
+def load_datasets(summary_dir: Path, denominators: list[str], attack: str) -> dict[str, list[dict[str, Any]]]:
+    return {name: read_summary(summary_dir / DENOMINATOR_FILES[name], attack) for name in denominators}
 
 
 def config_key(row: dict[str, Any]) -> tuple[str, int, str, int]:
@@ -314,7 +323,7 @@ def main() -> None:
     use_chart_theme()
     summary_dir = args.summary_dir.resolve()
     output_dir = (args.output_dir or summary_dir / "charts_position_bars").resolve()
-    datasets = load_datasets(summary_dir, args.denominators)
+    datasets = load_datasets(summary_dir, args.denominators, args.attack)
     configs = sorted(
         {
             config_key(row)
