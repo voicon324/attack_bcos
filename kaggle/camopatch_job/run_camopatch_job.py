@@ -209,6 +209,10 @@ def attack_key_for(config: dict) -> str:
         "lavan": "lavan",
         "lavan-pytorch": "lavan",
         "localized-visible": "lavan",
+        "adversarial-patch": "adversarial_patch",
+        "adversarialpatch": "adversarial_patch",
+        "adversarial-patch-attack": "adversarial_patch",
+        "apa": "adversarial_patch",
     }
     try:
         return mapping[attack]
@@ -239,6 +243,8 @@ def attack_script_for(repo: Path, config: dict) -> Path:
         script = repo / "PatchRS" / "ConPatchRSBatch.py"
     elif attack == "lavan":
         script = repo / "LaVAN" / "ConLaVANBatch.py"
+    elif attack == "adversarial_patch":
+        script = repo / "AdversarialPatch" / "ConAdversarialPatchBatch.py"
     else:
         raise AssertionError(f"Unhandled attack key: {attack}")
     if not script.is_file():
@@ -463,6 +469,20 @@ def main() -> None:
             ("step_size", "--step-size"),
             ("gradient_mode", "--gradient-mode"),
             ("patch_init", "--patch-init"),
+            ("li", "--li"),
+            ("location_update_period", "--li"),
+        ):
+            if config_key in config:
+                cmd.extend([flag, str(config[config_key])])
+    elif attack == "adversarial_patch":
+        for config_key, flag in (
+            ("step_size", "--step-size"),
+            ("gradient_mode", "--gradient-mode"),
+            ("patch_init", "--patch-init"),
+            ("target_class", "--target-class"),
+            ("target_mode", "--target-mode"),
+            ("success_mode", "--success-mode"),
+            ("probability_threshold", "--probability-threshold"),
             ("li", "--li"),
             ("location_update_period", "--li"),
         ):

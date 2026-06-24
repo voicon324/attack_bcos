@@ -1,4 +1,4 @@
-# CamoPatch, Patch-RS, And LaVAN Kaggle Runs
+# CamoPatch, Patch-RS, LaVAN, And Adversarial Patch Kaggle Runs
 
 ## Generate Jobs
 
@@ -55,6 +55,30 @@ LaVAN jobs use `attack=lavan`, random initialization inside the configured
 `L_inf` ball, and dispatch to `LaVAN/ConLaVANBatch.py`. The `queries` field is
 the white-box optimization iteration/eval count, defaulting to 500. Output zips
 use the same contract as CamoPatch and Patch-RS.
+
+Generate A-LinCui Adversarial Patch queues with the same B-cos models,
+transforms, initial position rules, `L_inf` budgets, Pro 6000 shape, and
+offline Kaggle sources:
+
+```bash
+python scripts/generate_adversarial_patch_kaggle_jobs.py \
+  --output kaggle/adversarialpatch_jobs.json
+
+python scripts/generate_adversarial_patch_kaggle_jobs.py \
+  --s16-linf64-only \
+  --output kaggle/adversarialpatch_s16_linf64_positions_jobs.json
+
+python scripts/generate_adversarial_patch_movable_kaggle_jobs.py \
+  --output kaggle/adversarialpatch_movable_s16_linf64_jobs.json
+```
+
+Adversarial Patch jobs use `attack=adversarial_patch`, dispatch to
+`AdversarialPatch/ConAdversarialPatchBatch.py`, default to the upstream fixed
+target class `859`, and store `target_class`, `targeted_success`, and
+`target_probability` in `summary.csv`. The matrix success metric remains
+untargeted by default (`final_prediction != true_label`) for comparability with
+the existing CamoPatch, Patch-RS, and LaVAN tables. The default `queries=1000`
+matches the upstream `max_iteration` default.
 
 ## Accounts
 

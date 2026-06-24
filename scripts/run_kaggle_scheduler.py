@@ -126,6 +126,7 @@ def short_slug(job_id: str) -> str:
     slug = slug.replace("camopatch-bcos-", "cb-")
     slug = slug.replace("patchrs-bcos-", "pr-")
     slug = slug.replace("lavan-bcos-", "lv-")
+    slug = slug.replace("adversarialpatch-bcos-", "ap-")
     # Kaggle rejects long kernel slugs with a generic 400. Leave room for
     # "-<timestamp>" appended by stage_kernel.
     return slug[:39].strip("-")
@@ -608,6 +609,7 @@ def select_bundle_job_ids(
 def bundle_job_id(job_ids: list[str]) -> str:
     first = sanitize_slug(job_ids[0].removeprefix("camopatch-bcos-"))
     first = first.removeprefix("patchrs-bcos-").removeprefix("lavan-bcos-")
+    first = first.removeprefix("adversarialpatch-bcos-")
     return f"bundle-{first[:30]}-n{len(job_ids)}-{int(time.time())}"
 
 

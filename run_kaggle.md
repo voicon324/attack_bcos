@@ -4,7 +4,7 @@ Read this file first in any new Codex/chat session before touching Kaggle.
 
 ## Goal
 
-Run and monitor the CamoPatch, Patch-RS, and LaVAN B-cos Kaggle matrices from this repo.
+Run and monitor the CamoPatch, Patch-RS, LaVAN, and Adversarial Patch B-cos Kaggle matrices from this repo.
 
 - Main fixed-position queue: `kaggle/camopatch_jobs.json`
 - Movable-position queue: `kaggle/camopatch_movable_s16_linf64_jobs.json`
@@ -12,6 +12,9 @@ Run and monitor the CamoPatch, Patch-RS, and LaVAN B-cos Kaggle matrices from th
 - Patch-RS movable-position queue: `kaggle/patchrs_movable_s16_linf64_jobs.json`
 - LaVAN fixed-position queue: `kaggle/lavan_jobs.json`
 - LaVAN movable-position queue: `kaggle/lavan_movable_s16_linf64_jobs.json`
+- Adversarial Patch fixed-position queue: `kaggle/adversarialpatch_jobs.json`
+- Adversarial Patch size-16, `L_inf=64/256` queue: `kaggle/adversarialpatch_s16_linf64_positions_jobs.json`
+- Adversarial Patch movable-position queue: `kaggle/adversarialpatch_movable_s16_linf64_jobs.json`
 - Scheduler: `scripts/run_kaggle_scheduler.py`
 - Main fixed run root: `kaggle_runs_success_query_full`
 - Movable run root: `kaggle_runs_movable_s16_linf64`
@@ -252,6 +255,41 @@ LaVAN uses the same transforms and position rules as CamoPatch:
 - default patch initialization: random inside the configured `L_inf` ball
 - default `queries=500`, interpreted as white-box optimization iterations/evals
 
+Adversarial Patch fixed queue, 171 jobs:
+
+```bash
+python scripts/generate_adversarial_patch_kaggle_jobs.py --dry-run
+python scripts/generate_adversarial_patch_kaggle_jobs.py \
+  --output kaggle/adversarialpatch_jobs.json
+```
+
+Adversarial Patch size-16, `L_inf=64/256` fixed queue, 19 jobs:
+
+```bash
+python scripts/generate_adversarial_patch_kaggle_jobs.py \
+  --s16-linf64-only \
+  --output kaggle/adversarialpatch_s16_linf64_positions_jobs.json
+```
+
+Adversarial Patch movable queue, 14 jobs:
+
+```bash
+python scripts/generate_adversarial_patch_movable_kaggle_jobs.py --dry-run
+python scripts/generate_adversarial_patch_movable_kaggle_jobs.py \
+  --output kaggle/adversarialpatch_movable_s16_linf64_jobs.json
+```
+
+Adversarial Patch uses the same transforms and position rules as CamoPatch:
+
+- `Resize(224) -> CenterCrop(224) -> ToTensor()`
+- fixed: `random`, `bcos_top1`, `gradcam`, with no ViTC `gradcam`
+- movable: `random`, `bcos_top1`, `fixed_position=false`
+- default patch initialization: random inside the configured `L_inf` ball
+- default `queries=1000`, matching upstream `max_iteration`
+- upstream fixed target class default: `859`
+- matrix success remains untargeted by default; summary also stores
+  `target_class`, `targeted_success`, and `target_probability`
+
 ## Update Code Dataset After Code Changes
 
 If code changes were made, push to GitHub first. Immediately after a successful
@@ -426,6 +464,54 @@ python scripts/run_kaggle_scheduler.py \
   --jobs-config /tmp/lavan_smoke_jobs.json \
   --accounts-config kaggle/accounts.example.json \
   --run-root kaggle_runs_lavan_smoke \
+  --max-submit 1 \
+  --once
+```
+
+## Submit Or Resume Adversarial Patch Queues
+
+Use separate run roots from CamoPatch, Patch-RS, and LaVAN:
+
+```bash
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config kaggle/adversarialpatch_jobs.json \
+  --accounts-config kaggle/accounts.example.json \
+  --run-root kaggle_runs_adversarialpatch_full \
+  --poll-interval 300
+```
+
+Size-16, `L_inf=64/256` fixed-position Adversarial Patch:
+
+```bash
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config kaggle/adversarialpatch_s16_linf64_positions_jobs.json \
+  --accounts-config kaggle/accounts_patchrs_all.json \
+  --run-root kaggle_runs_adversarialpatch_s16_linf64_positions \
+  --auto-bundle-under-quota-hours 0 \
+  --poll-interval 300
+```
+
+Movable Adversarial Patch:
+
+```bash
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config kaggle/adversarialpatch_movable_s16_linf64_jobs.json \
+  --accounts-config kaggle/accounts_movable_md.json \
+  --run-root kaggle_runs_adversarialpatch_movable_s16_linf64 \
+  --poll-interval 300
+```
+
+Smoke Adversarial Patch:
+
+```bash
+python scripts/generate_adversarial_patch_kaggle_jobs.py \
+  --smoke \
+  --output /tmp/adversarialpatch_smoke_jobs.json
+
+python scripts/run_kaggle_scheduler.py \
+  --jobs-config /tmp/adversarialpatch_smoke_jobs.json \
+  --accounts-config kaggle/accounts.example.json \
+  --run-root kaggle_runs_adversarialpatch_smoke \
   --max-submit 1 \
   --once
 ```

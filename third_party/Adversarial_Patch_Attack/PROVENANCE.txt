@@ -1,0 +1,2 @@
+Vendored from https://github.com/A-LinCui/Adversarial_Patch_Attack at commit a1fa375f31f60acf49c8ce1411433c2a7ddfebcc
+Local copy normalizes line endings and trailing whitespace only.
