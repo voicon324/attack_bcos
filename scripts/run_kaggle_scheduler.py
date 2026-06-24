@@ -27,6 +27,18 @@ GPU_QUOTA_PATTERNS = (
     "Maximum weekly GPU quota",
     "GPU quota of",
 )
+NETWORK_PUSH_PATTERNS = (
+    "Connection aborted",
+    "Connection timed out",
+    "Failed to resolve",
+    "Max retries exceeded",
+    "NameResolutionError",
+    "NewConnectionError",
+    "Read timed out",
+    "RemoteDisconnected",
+    "SSLError",
+    "Temporary failure in name resolution",
+)
 COMPETITION_RULES_PATTERNS = (
     "must accept this competition's rules",
     "accept the competition rules",
@@ -315,6 +327,8 @@ def classify_push_failure(text: str) -> str:
     lowered = text.lower()
     if any(pattern in lowered for pattern in COMPETITION_RULES_PATTERNS):
         return "competition_rules"
+    if any(pattern.lower() in lowered for pattern in NETWORK_PUSH_PATTERNS):
+        return "network"
     if any(pattern in text for pattern in GPU_CAPACITY_PATTERNS):
         return "gpu_capacity"
     if any(pattern in text for pattern in GPU_QUOTA_PATTERNS):
@@ -1069,11 +1083,13 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                             run_root,
                             f"submit_exception jobs={','.join(bundle_ids)} account={account['name']} detail={exc}",
                         )
-                    if result in {"gpu_capacity", "gpu_quota", "competition_rules"}:
+                    if result in {"gpu_capacity", "gpu_quota", "competition_rules", "network"}:
                         if result == "gpu_quota":
                             cooldown_minutes = float(args.quota_cooldown_minutes)
                         elif result == "competition_rules":
                             cooldown_minutes = float(args.rules_cooldown_minutes)
+                        elif result == "network":
+                            cooldown_minutes = float(args.network_cooldown_minutes)
                         else:
                             cooldown_minutes = float(args.account_cooldown_minutes)
                         backoff_until = iso_after_minutes(cooldown_minutes)
@@ -1126,6 +1142,12 @@ def main() -> None:
         type=float,
         default=10080.0,
         help="Cooldown an account this long after Kaggle reports unaccepted competition rules.",
+    )
+    parser.add_argument(
+        "--network-cooldown-minutes",
+        type=float,
+        default=5.0,
+        help="Cooldown an account briefly after a transient Kaggle API/network push failure.",
     )
     parser.add_argument("--poll-only", action="store_true")
     parser.add_argument("--once", action="store_true", help="Run one poll/submit cycle and exit.")
