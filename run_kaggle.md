@@ -253,7 +253,7 @@ LaVAN uses the same transforms and position rules as CamoPatch:
 - fixed: `random`, `bcos_top1`, `gradcam`, with no ViTC `gradcam`
 - movable: `random`, `bcos_top1`, `fixed_position=false`
 - default patch initialization: random inside the configured `L_inf` ball
-- default `queries=500`, interpreted as white-box optimization iterations/evals
+- default `queries=10000`, interpreted as white-box optimization iterations/evals
 
 Adversarial Patch fixed queue, 171 jobs:
 
@@ -285,7 +285,7 @@ Adversarial Patch uses the same transforms and position rules as CamoPatch:
 - fixed: `random`, `bcos_top1`, `gradcam`, with no ViTC `gradcam`
 - movable: `random`, `bcos_top1`, `fixed_position=false`
 - default patch initialization: random inside the configured `L_inf` ball
-- default `queries=1000`, matching upstream `max_iteration`
+- default `queries=10000`, matching the project matrix
 - upstream fixed target class default: `859`
 - matrix success remains untargeted by default; summary also stores
   `target_class`, `targeted_success`, and `target_probability`

@@ -53,8 +53,9 @@ python scripts/generate_lavan_movable_kaggle_jobs.py \
 
 LaVAN jobs use `attack=lavan`, random initialization inside the configured
 `L_inf` ball, and dispatch to `LaVAN/ConLaVANBatch.py`. The `queries` field is
-the white-box optimization iteration/eval count, defaulting to 500. Output zips
-use the same contract as CamoPatch and Patch-RS.
+the white-box optimization iteration/eval count, defaulting to 10000 for the
+shared project matrix. Output zips use the same contract as CamoPatch and
+Patch-RS.
 
 Generate A-LinCui Adversarial Patch queues with the same B-cos models,
 transforms, initial position rules, `L_inf` budgets, Pro 6000 shape, and
@@ -77,8 +78,8 @@ Adversarial Patch jobs use `attack=adversarial_patch`, dispatch to
 target class `859`, and store `target_class`, `targeted_success`, and
 `target_probability` in `summary.csv`. The matrix success metric remains
 untargeted by default (`final_prediction != true_label`) for comparability with
-the existing CamoPatch, Patch-RS, and LaVAN tables. The default `queries=1000`
-matches the upstream `max_iteration` default.
+the existing CamoPatch, Patch-RS, and LaVAN tables. The default
+`queries=10000` matches the project matrix.
 
 ## Accounts
 

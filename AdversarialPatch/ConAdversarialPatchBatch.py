@@ -443,7 +443,7 @@ def main() -> None:
     parser.add_argument("--model", default="1")
     parser.add_argument("--model_source", choices=("auto", "bcos", "torchvision"), default="bcos")
     parser.add_argument("--s", type=int, default=16)
-    parser.add_argument("--queries", type=int, default=1000)
+    parser.add_argument("--queries", type=int, default=10000)
     parser.add_argument("--li", type=int, default=4)
     parser.add_argument("--linf", type=parse_linf, default=None)
     parser.add_argument("--step_size", "--step-size", dest="step_size", type=parse_step_size, default=parse_step_size("1/256"))

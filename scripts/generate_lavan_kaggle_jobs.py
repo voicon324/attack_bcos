@@ -91,7 +91,7 @@ def main() -> None:
     parser.add_argument(
         "--queries",
         type=int,
-        default=500,
+        default=10000,
         help="LaVAN optimization iterations/evaluations per image.",
     )
     parser.add_argument("--dry-run", action="store_true", help="Print summary without writing.")

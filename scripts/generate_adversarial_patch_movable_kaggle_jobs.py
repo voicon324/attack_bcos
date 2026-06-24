@@ -96,7 +96,7 @@ def main() -> None:
     parser.add_argument(
         "--queries",
         type=int,
-        default=1000,
+        default=10000,
         help="Adversarial Patch optimization iterations/evaluations per image.",
     )
     parser.add_argument("--dry-run", action="store_true", help="Print summary without writing.")
