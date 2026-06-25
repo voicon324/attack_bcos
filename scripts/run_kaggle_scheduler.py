@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 import zipfile
 from datetime import datetime, timedelta, timezone
@@ -460,6 +461,46 @@ def account_int(account: dict, key: str, default: int) -> int:
         return default
 
 
+def duration_hours(value: Any) -> float:
+    if hasattr(value, "total_seconds"):
+        return float(value.total_seconds()) / 3600.0
+    text = str(value or "").strip().rstrip("s")
+    if not text:
+        return 0.0
+    if "." in text:
+        seconds_text, fraction = text.split(".", 1)
+        fraction = fraction.split(".", 1)[0]
+        fraction = (fraction + "000000000")[:9]
+        seconds = int(seconds_text or "0")
+        nanos = int(fraction)
+    else:
+        seconds = int(text)
+        nanos = 0
+    return (seconds + nanos / 1_000_000_000.0) / 3600.0
+
+
+def patch_kaggle_timedelta_serializer() -> None:
+    try:
+        from kagglesdk import kaggle_object
+    except Exception:
+        return
+
+    def from_dict_value(value: Any) -> timedelta:
+        text = str(value or "0s").strip().rstrip("s")
+        if "." in text:
+            seconds_text, fraction = text.split(".", 1)
+            fraction = fraction.split(".", 1)[0]
+            fraction = (fraction + "000000000")[:9]
+            seconds = int(seconds_text or "0")
+            nanos = int(fraction)
+        else:
+            seconds = int(text or "0")
+            nanos = 0
+        return timedelta(seconds=seconds, microseconds=int(nanos / 1000))
+
+    kaggle_object.TimeDeltaSerializer._from_dict_value = staticmethod(from_dict_value)
+
+
 def quota_reset_window(
     now: datetime,
     reset_weekday: int,
@@ -488,7 +529,7 @@ def job_quota_unit(job_id: str, state_job: dict) -> str:
     return str(state_job.get("bundle_id") or state_job.get("slug") or job_id)
 
 
-def estimate_account_quota(
+def estimate_account_quota_local(
     state: dict,
     account: dict,
     args: argparse.Namespace,
@@ -562,6 +603,7 @@ def estimate_account_quota(
         "remaining_hours": round(remaining_hours, 3),
         "active_units": active_units,
         "observed_units": len(units),
+        "quota_source": "local",
         "window_start": window_start.replace(microsecond=0).isoformat(),
         "next_reset": next_reset.replace(microsecond=0).isoformat(),
         "reset_weekday": reset_weekday,
@@ -573,9 +615,144 @@ def estimate_account_quota(
     }
 
 
-def estimate_account_quotas(state: dict, accounts: list[dict], args: argparse.Namespace) -> dict[str, dict[str, Any]]:
+def estimate_account_quota_api(
+    state: dict,
+    account: dict,
+    args: argparse.Namespace,
+    run_root: Path,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    now = now or datetime.now(timezone.utc)
+    config_dir = install_account_config(Path(account["kaggle_json"]), run_root / "runtime" / "accounts" / account["name"])
+    quota_script = r"""
+import json
+from datetime import timedelta
+from kaggle.api.kaggle_api_extended import KaggleApi
+from kagglesdk import kaggle_object
+
+def fixed_timedelta(value):
+    text = str(value or "0s").strip().rstrip("s")
+    if "." in text:
+        seconds, fraction = text.split(".", 1)
+        fraction = fraction.split(".", 1)[0]
+        fraction = (fraction + "000000000")[:9]
+        nanos = int(fraction)
+    else:
+        seconds = text or "0"
+        nanos = 0
+    return timedelta(seconds=int(seconds), microseconds=int(nanos / 1000))
+
+kaggle_object.TimeDeltaSerializer._from_dict_value = staticmethod(fixed_timedelta)
+api = KaggleApi()
+api.authenticate()
+quota = api.quota_view()
+gpu = quota.gpu_quota
+refresh = quota.quota_refresh_time
+print(json.dumps({
+    "time_used_seconds": gpu.time_used.total_seconds(),
+    "time_reserved_seconds": gpu.time_reserved.total_seconds(),
+    "total_time_allowed_seconds": gpu.total_time_allowed.total_seconds(),
+    "minimum_time_allowed_seconds": gpu.minimum_time_allowed.total_seconds(),
+    "has_ever_run": bool(gpu.has_ever_run),
+    "is_pay_to_scale_enabled": bool(getattr(gpu, "is_pay_to_scale_enabled", False)),
+    "quota_refresh_time": refresh.isoformat() if refresh else "",
+}))
+"""
+    env = os.environ.copy()
+    env["KAGGLE_CONFIG_DIR"] = str(config_dir)
+    proc = subprocess.run(
+        [sys.executable, "-c", quota_script],
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=60,
+    )
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout).strip().splitlines()[-1:]
+        raise RuntimeError(detail[0] if detail else f"quota API exited {proc.returncode}")
+    quota_data = json.loads(proc.stdout)
+    total_hours = float(quota_data.get("total_time_allowed_seconds", 0.0)) / 3600.0
+    used_hours = float(quota_data.get("time_used_seconds", 0.0)) / 3600.0
+    reserved_hours = float(quota_data.get("time_reserved_seconds", 0.0)) / 3600.0
+    if total_hours <= 0:
+        total_hours = account_float(account, "weekly_gpu_quota_hours", float(args.weekly_gpu_quota_hours))
+    remaining_hours = total_hours - used_hours - reserved_hours
+    refresh_text = str(quota_data.get("quota_refresh_time", ""))
+    if refresh_text:
+        next_reset = datetime.fromisoformat(refresh_text)
+        if next_reset.tzinfo is None:
+            next_reset = next_reset.replace(tzinfo=timezone.utc)
+        next_reset = next_reset.astimezone(timezone.utc)
+    else:
+        reset_weekday = account_int(account, "quota_reset_weekday", int(args.quota_reset_weekday))
+        reset_hour = account_int(account, "quota_reset_hour", int(args.quota_reset_hour))
+        reset_timezone = str(account.get("quota_reset_timezone", args.quota_reset_timezone))
+        _, next_reset, _ = quota_reset_window(now, reset_weekday, reset_hour, reset_timezone)
+    window_start = next_reset - timedelta(days=7)
+    under_hours = account_float(
+        account,
+        "auto_bundle_under_quota_hours",
+        float(args.auto_bundle_under_quota_hours),
+    )
+    auto_bundle = bool(under_hours > 0 and remaining_hours <= under_hours)
+    active_units = account_active_count(state, account["name"])
+    return {
+        "account": account["name"],
+        "username": account["username"],
+        "weekly_quota_hours": round(total_hours, 3),
+        "used_hours": round(used_hours, 3),
+        "active_hours": round(reserved_hours, 3),
+        "reserved_hours": round(reserved_hours, 3),
+        "remaining_hours": round(remaining_hours, 3),
+        "active_units": active_units,
+        "observed_units": active_units,
+        "quota_source": "api",
+        "window_start": window_start.replace(microsecond=0).isoformat(),
+        "next_reset": next_reset.replace(microsecond=0).isoformat(),
+        "reset_weekday": window_start.weekday(),
+        "reset_hour": window_start.hour,
+        "reset_timezone": "UTC",
+        "auto_bundle_under_quota_hours": round(under_hours, 3),
+        "auto_bundle": auto_bundle,
+        "generated_at": now.replace(microsecond=0).isoformat(),
+    }
+
+
+def estimate_account_quota(
+    state: dict,
+    account: dict,
+    args: argparse.Namespace,
+    run_root: Path,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    source = str(account.get("quota_source", args.quota_source)).lower()
+    if source not in {"api", "local", "auto"}:
+        source = "auto"
+    if source in {"api", "auto"}:
+        try:
+            return estimate_account_quota_api(state, account, args, run_root, now)
+        except Exception as exc:
+            if source == "api":
+                quota = estimate_account_quota_local(state, account, args, now)
+                quota["quota_source"] = "api_error"
+                quota["quota_error"] = str(exc)
+                return quota
+            quota = estimate_account_quota_local(state, account, args, now)
+            quota["quota_source"] = "local_fallback"
+            quota["quota_error"] = str(exc)
+            return quota
+    return estimate_account_quota_local(state, account, args, now)
+
+
+def estimate_account_quotas(
+    state: dict,
+    accounts: list[dict],
+    args: argparse.Namespace,
+    run_root: Path,
+) -> dict[str, dict[str, Any]]:
     now = datetime.now(timezone.utc)
-    return {account["name"]: estimate_account_quota(state, account, args, now) for account in accounts}
+    return {account["name"]: estimate_account_quota(state, account, args, run_root, now) for account in accounts}
 
 
 def bundle_target_for_account(account: dict, args: argparse.Namespace, quota_estimate: dict[str, Any]) -> float:
@@ -846,6 +1023,13 @@ def is_future_iso(value: str) -> bool:
     return dt > datetime.now(timezone.utc)
 
 
+def as_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def poll_job(run_root: Path, job: dict, state_job: dict, accounts_by_name: dict[str, dict]) -> None:
     account = accounts_by_name.get(state_job.get("account", ""))
     if account is None:
@@ -1018,6 +1202,9 @@ def scheduler_loop(args: argparse.Namespace) -> None:
         ensure_jobs_in_state(state, jobs_by_id, run_root)
         state.setdefault("account_backoff_until", {})
         state.setdefault("account_quota_estimates", {})
+        state["account_quota_estimates"] = estimate_account_quotas(state, accounts, args, run_root)
+        save_json(state_path, state)
+        write_dashboard(run_root, state)
 
         polled_bundles: set[str] = set()
         for job_id, state_job in list(state.get("jobs", {}).items()):
@@ -1038,7 +1225,7 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                 save_json(state_path, state)
                 write_dashboard(run_root, state)
 
-        state["account_quota_estimates"] = estimate_account_quotas(state, accounts, args)
+        state["account_quota_estimates"] = estimate_account_quotas(state, accounts, args, run_root)
         save_json(state_path, state)
         write_dashboard(run_root, state)
 
@@ -1053,6 +1240,15 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                     )
                     continue
                 quota_estimate = state.get("account_quota_estimates", {}).get(account["name"], {})
+                remaining_hours = as_float(quota_estimate.get("remaining_hours"), 0.0)
+                if quota_estimate.get("quota_source") == "api" and remaining_hours <= 0:
+                    backoff_until = str(quota_estimate.get("next_reset") or iso_after_minutes(float(args.quota_cooldown_minutes)))
+                    state["account_backoff_until"][account["name"]] = backoff_until
+                    append_progress(
+                        run_root,
+                        f"skip_account account={account['name']} reason=api_quota_left {remaining_hours} until={backoff_until}",
+                    )
+                    continue
                 bundle_target_hours = bundle_target_for_account(account, args, quota_estimate)
                 bundle_max_jobs = bundle_max_jobs_for_account(account, args)
                 free_slots = int(account["max_running"]) - account_active_count(state, account["name"])
@@ -1131,7 +1327,7 @@ def scheduler_loop(args: argparse.Namespace) -> None:
                 if args.max_submit and submitted >= args.max_submit:
                     break
 
-        state["account_quota_estimates"] = estimate_account_quotas(state, accounts, args)
+        state["account_quota_estimates"] = estimate_account_quotas(state, accounts, args, run_root)
         save_json(state_path, state)
         write_dashboard(run_root, state)
 
@@ -1192,6 +1388,12 @@ def main() -> None:
         type=float,
         default=DEFAULT_WEEKLY_GPU_QUOTA_HOURS,
         help="Estimated weekly GPU quota per account; account config can override weekly_gpu_quota_hours.",
+    )
+    parser.add_argument(
+        "--quota-source",
+        choices=("auto", "api", "local"),
+        default="auto",
+        help="Quota source for dashboard left/used values. auto uses Kaggle quota API and falls back to local state.",
     )
     parser.add_argument(
         "--quota-reset-weekday",
