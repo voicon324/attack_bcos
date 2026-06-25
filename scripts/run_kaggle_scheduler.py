@@ -759,6 +759,10 @@ def find_expected_zip(output_dir: Path, expected_zip: str) -> Path | None:
     return matches[0] if matches else None
 
 
+def expected_zip_output_pattern(expected_zip: str) -> str:
+    return f".*{re.escape(expected_zip)}$"
+
+
 def count_csv_rows(path: Path) -> int | None:
     if not path.is_file():
         return None
@@ -853,8 +857,24 @@ def poll_job(run_root: Path, job: dict, state_job: dict, accounts_by_name: dict[
     state_job["status"] = "downloading"
     output_dir = run_root / "jobs" / job_id / "output"
     output_dir.mkdir(parents=True, exist_ok=True)
+    expected_zip = state_job.get("expected_zip", f"{job_id}_result.zip")
+    expected_rows = expected_summary_rows(job)
+    zip_path = find_expected_zip(output_dir, expected_zip)
+    if zip_path:
+        is_valid_zip, validation_reason = validate_result_zip(zip_path, expected_rows)
+        if is_valid_zip:
+            state_job["status"] = "done"
+            state_job["done_at"] = now_iso()
+            state_job["result_zip"] = str(zip_path)
+            append_progress(run_root, f"done job={job_id}")
+            return
+        state_job["status"] = "failed"
+        state_job["failure_reason"] = f"invalid result zip: {validation_reason}"
+        append_progress(run_root, f"failed job={job_id} reason=invalid_zip detail={validation_reason}")
+        return
+
     kernel_ref = f"{account['username']}/{state_job['slug']}"
-    pattern = job.get("output_pattern", ".*(zip|log)$")
+    pattern = expected_zip_output_pattern(expected_zip)
     rc = run_kaggle(
         ["kernels", "output", kernel_ref, "-p", str(output_dir), "--file-pattern", pattern, "-o"],
         account,
@@ -863,9 +883,7 @@ def poll_job(run_root: Path, job: dict, state_job: dict, accounts_by_name: dict[
     )
     state_job["last_checked"] = now_iso()
 
-    expected_zip = state_job.get("expected_zip", f"{job_id}_result.zip")
     zip_path = find_expected_zip(output_dir, expected_zip)
-    expected_rows = expected_summary_rows(job)
     if zip_path:
         is_valid_zip, validation_reason = validate_result_zip(zip_path, expected_rows)
     else:
@@ -928,8 +946,13 @@ def poll_bundle(
     output_dir.mkdir(parents=True, exist_ok=True)
     slug = str(active_items[0][1].get("slug", ""))
     kernel_ref = f"{account['username']}/{slug}"
+    zip_patterns = [
+        expected_zip_output_pattern(str(state_job.get("expected_zip", f"{job_id}_result.zip")))
+        for job_id, state_job in active_items
+    ]
+    output_pattern = "|".join(zip_patterns)
     rc = run_kaggle(
-        ["kernels", "output", kernel_ref, "-p", str(output_dir), "--file-pattern", ".*(zip|log|json|csv)$", "-o"],
+        ["kernels", "output", kernel_ref, "-p", str(output_dir), "--file-pattern", output_pattern, "-o"],
         account,
         run_root,
         run_root / "bundles" / bundle_id / "output.log",
