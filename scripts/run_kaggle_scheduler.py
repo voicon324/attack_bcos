@@ -588,6 +588,7 @@ def estimate_account_quota_local(
             active_units += 1
 
     remaining_hours = weekly_quota_hours - used_hours
+    available_hours = remaining_hours - active_hours
     under_hours = account_float(
         account,
         "auto_bundle_under_quota_hours",
@@ -600,6 +601,7 @@ def estimate_account_quota_local(
         "weekly_quota_hours": round(weekly_quota_hours, 3),
         "used_hours": round(used_hours, 3),
         "active_hours": round(active_hours, 3),
+        "available_hours": round(available_hours, 3),
         "remaining_hours": round(remaining_hours, 3),
         "active_units": active_units,
         "observed_units": len(units),
@@ -677,7 +679,8 @@ print(json.dumps({
     reserved_hours = float(quota_data.get("time_reserved_seconds", 0.0)) / 3600.0
     if total_hours <= 0:
         total_hours = account_float(account, "weekly_gpu_quota_hours", float(args.weekly_gpu_quota_hours))
-    remaining_hours = total_hours - used_hours - reserved_hours
+    remaining_hours = total_hours - used_hours
+    available_hours = remaining_hours - reserved_hours
     refresh_text = str(quota_data.get("quota_refresh_time", ""))
     if refresh_text:
         next_reset = datetime.fromisoformat(refresh_text)
@@ -704,6 +707,7 @@ print(json.dumps({
         "used_hours": round(used_hours, 3),
         "active_hours": round(reserved_hours, 3),
         "reserved_hours": round(reserved_hours, 3),
+        "available_hours": round(available_hours, 3),
         "remaining_hours": round(remaining_hours, 3),
         "active_units": active_units,
         "observed_units": active_units,

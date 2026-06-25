@@ -263,6 +263,7 @@ HTML = r"""<!doctype html>
           <td>failed ${row.failed || 0}</td>
           <td>used ${esc(fmtHours(quota.used_hours))}</td>
           <td>left ${esc(fmtHours(quota.remaining_hours))}</td>
+          <td>avail ${esc(fmtHours(quota.available_hours))}</td>
           <td>reserved ${esc(fmtHours(quota.reserved_hours ?? quota.active_hours))}</td>
           <td>src ${esc(quota.quota_source || 'N/A')}</td>
           <td>${bundle}</td>
