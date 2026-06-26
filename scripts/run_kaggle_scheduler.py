@@ -1236,15 +1236,22 @@ def scheduler_loop(args: argparse.Namespace) -> None:
         submitted = 0
         if not args.poll_only:
             for account in accounts:
-                backoff_until = str(state["account_backoff_until"].get(account["name"], ""))
-                if is_future_iso(backoff_until):
-                    append_progress(
-                        run_root,
-                        f"skip_account account={account['name']} reason=gpu_capacity_until {backoff_until}",
-                    )
-                    continue
                 quota_estimate = state.get("account_quota_estimates", {}).get(account["name"], {})
                 remaining_hours = as_float(quota_estimate.get("remaining_hours"), 0.0)
+                backoff_until = str(state["account_backoff_until"].get(account["name"], ""))
+                if is_future_iso(backoff_until):
+                    if quota_estimate.get("quota_source") == "api" and remaining_hours > 0:
+                        state["account_backoff_until"].pop(account["name"], None)
+                        append_progress(
+                            run_root,
+                            f"clear_cooldown account={account['name']} reason=api_quota_left {remaining_hours}",
+                        )
+                    else:
+                        append_progress(
+                            run_root,
+                            f"skip_account account={account['name']} reason=gpu_capacity_until {backoff_until}",
+                        )
+                        continue
                 if quota_estimate.get("quota_source") == "api" and remaining_hours <= 0:
                     backoff_until = str(quota_estimate.get("next_reset") or iso_after_minutes(float(args.quota_cooldown_minutes)))
                     state["account_backoff_until"][account["name"]] = backoff_until
