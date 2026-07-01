@@ -28,6 +28,7 @@ for path in (PROJECT_ROOT, ATTACKS_DIR, PROJECT_ROOT / "B-cos-v2"):
         sys.path.insert(0, str(path))
 
 import bcos  # noqa: E402
+from explain_guided_pixel_es_patch import extract_bcos_gradcam_map  # noqa: E402
 from bcos_es_patch import extract_attribution, load_rgb_image, to_bcos_input  # noqa: E402
 from sparse_attack import configure_fast_runtime, load_image_paths_from_csv, maybe_channels_last  # noqa: E402
 
@@ -48,6 +49,7 @@ class Arm:
     name: str
     sampler: str
     temperature: float | None
+    map_source: str | None = None
 
 
 def now_iso() -> str:
@@ -169,23 +171,44 @@ def bcos_contribution_map(model: torch.nn.Module, x_rgb: Tensor, target_class: i
     return cmap.detach().clamp_min(0)
 
 
+def bcos_gradcam_map(model: torch.nn.Module, x_rgb: Tensor, target_class: int) -> Tensor:
+    gradcam = extract_bcos_gradcam_map(model, to_bcos_input(x_rgb), target_class).detach()
+    while gradcam.dim() > 2:
+        gradcam = gradcam.squeeze(0)
+    if gradcam.dim() == 3:
+        gradcam = gradcam.abs().sum(dim=0)
+    else:
+        gradcam = gradcam.abs()
+    if gradcam.shape[-2:] != x_rgb.shape[-2:]:
+        gradcam = F.interpolate(
+            gradcam.view(1, 1, *gradcam.shape[-2:]),
+            size=x_rgb.shape[-2:],
+            mode="bilinear",
+            align_corners=False,
+        )[0, 0]
+    return gradcam.detach().clamp_min(0)
+
+
 def build_probs_for_arm(
     arm: Arm,
-    map_scores: Tensor | None,
+    maps_by_source: dict[str, Tensor],
     n_pixels: int,
     seed: int,
     device: torch.device,
 ) -> tuple[Tensor, str, float | None, int]:
-    if arm.sampler == "uniform" or map_scores is None:
+    if arm.sampler == "uniform" or arm.map_source is None:
         return torch.ones(n_pixels, device=device) / n_pixels, "uniform", None, 0
+    map_scores = maps_by_source.get(arm.map_source)
+    if map_scores is None:
+        raise ValueError(f"Missing map source for arm {arm.name}: {arm.map_source}")
     flat = map_scores.flatten().to(device)
-    if arm.sampler == "map_shuffle":
+    if arm.sampler == "shuffle":
         gen = torch.Generator(device=device)
         gen.manual_seed(int(seed))
         flat = flat[torch.randperm(flat.numel(), generator=gen, device=device)]
-        location_source = "bcos_top1_permuted"
-    elif arm.sampler == "map_true":
-        location_source = "bcos_top1_true"
+        location_source = f"{arm.map_source}_permuted"
+    elif arm.sampler == "true":
+        location_source = f"{arm.map_source}_true"
     else:
         raise ValueError(f"Unsupported sampler: {arm.sampler}")
     return normalize_importance(flat, arm.temperature).to(device), location_source, arm.temperature, 1
@@ -309,15 +332,26 @@ def run_l0_sparse_rs(
         }
 
 
-def arm_list(temperatures: list[float | None]) -> list[Arm]:
+def arm_list(temperatures: list[float | None], map_sources: list[str]) -> list[Arm]:
     arms = [Arm("uniform", "uniform", None)]
-    for temp in temperatures:
-        if temp is None:
-            continue
-        temp_slug = str(temp).replace(".", "p")
-        arms.append(Arm(f"map_shuffle_tau_{temp_slug}", "map_shuffle", temp))
-        arms.append(Arm(f"map_true_tau_{temp_slug}", "map_true", temp))
+    for source in map_sources:
+        if source not in {"bcos", "gradcam"}:
+            raise ValueError(f"Unsupported map source: {source}")
+        for temp in temperatures:
+            if temp is None:
+                continue
+            temp_slug = str(temp).replace(".", "p")
+            if source == "bcos":
+                arms.append(Arm(f"map_shuffle_tau_{temp_slug}", "shuffle", temp, "bcos_top1"))
+                arms.append(Arm(f"map_true_tau_{temp_slug}", "true", temp, "bcos_top1"))
+            else:
+                arms.append(Arm(f"gradcam_shuffle_tau_{temp_slug}", "shuffle", temp, "gradcam"))
+                arms.append(Arm(f"gradcam_true_tau_{temp_slug}", "true", temp, "gradcam"))
     return arms
+
+
+def required_map_sources(arms: list[Arm]) -> set[str]:
+    return {str(arm.map_source) for arm in arms if arm.map_source is not None}
 
 
 def filter_arms(arms: list[Arm], requested: list[str] | None) -> list[Arm]:
@@ -348,7 +382,7 @@ def summarize(rows: list[dict[str, Any]], *, clean_only: bool) -> list[dict[str,
     for row in rows:
         if clean_only and int(row["clean_correct"]) != 1:
             continue
-        groups[(row["arm"], row["sampler"], row["temperature"])].append(row)
+        groups[(row["arm"], row["sampler"], row.get("map_source", ""), row["temperature"])].append(row)
     out = []
     for key, group in sorted(groups.items()):
         successes = [row for row in group if int(row["adversarial"]) == 1]
@@ -356,7 +390,8 @@ def summarize(rows: list[dict[str, Any]], *, clean_only: bool) -> list[dict[str,
         out.append({
             "arm": key[0],
             "sampler": key[1],
-            "temperature": key[2],
+            "map_source": key[2],
+            "temperature": key[3],
             "images": len(group),
             "clean_correct_images": sum(int(row["clean_correct"]) for row in group),
             "successes": len(successes),
@@ -372,7 +407,7 @@ def success_by_query(rows: list[dict[str, Any]], *, clean_only: bool) -> list[di
     for row in rows:
         if clean_only and int(row["clean_correct"]) != 1:
             continue
-        grouped[(row["arm"], row["sampler"], row["temperature"])].append(row)
+        grouped[(row["arm"], row["sampler"], row.get("map_source", ""), row["temperature"])].append(row)
     out = []
     for key, group in sorted(grouped.items()):
         events: dict[int, list[dict[str, Any]]] = defaultdict(list)
@@ -386,7 +421,8 @@ def success_by_query(rows: list[dict[str, Any]], *, clean_only: bool) -> list[di
             out.append({
                 "arm": key[0],
                 "sampler": key[1],
-                "temperature": key[2],
+                "map_source": key[2],
+                "temperature": key[3],
                 "first_success_query": query,
                 "new_successes": len(events[query]),
                 "cumulative_successes": cumulative,
@@ -419,6 +455,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--image-offset", type=int, default=0)
     parser.add_argument("--seeds", nargs="+", type=int, default=[0])
     parser.add_argument("--temperatures", nargs="+", default=["4", "1", "0.25"])
+    parser.add_argument("--map-sources", nargs="+", choices=["bcos", "gradcam"], default=["bcos"])
     parser.add_argument("--arms", nargs="+", default=None)
     parser.add_argument("--p-init", type=float, default=0.8)
     parser.add_argument("--constant-schedule", action="store_true")
@@ -447,7 +484,8 @@ def main() -> None:
         model = model.to(memory_format=torch.channels_last)
 
     temperatures = [parse_temperature(value) for value in args.temperatures]
-    arms = filter_arms(arm_list(temperatures), args.arms)
+    arms = filter_arms(arm_list(temperatures, args.map_sources), args.arms)
+    needed_maps = required_map_sources(arms)
     image_items = load_image_paths_from_csv(Path(args.images_csv))
     if args.image_offset > 0:
         image_items = image_items[args.image_offset :]
@@ -467,14 +505,21 @@ def main() -> None:
         with torch.no_grad():
             clean_logits = model_forward(model, x_rgb, channels_last)
             clean_pred = int(clean_logits.argmax(dim=1).item())
-        map_scores = bcos_contribution_map(model, x_rgb, clean_pred)
-        map_entropy = float((-(normalize_importance(map_scores.flatten(), 1.0) * torch.log(normalize_importance(map_scores.flatten(), 1.0) + 1e-12))).sum().item())
+        maps_by_source: dict[str, Tensor] = {}
+        map_entropies: dict[str, float] = {}
+        if "bcos_top1" in needed_maps:
+            maps_by_source["bcos_top1"] = bcos_contribution_map(model, x_rgb, clean_pred)
+        if "gradcam" in needed_maps:
+            maps_by_source["gradcam"] = bcos_gradcam_map(model, x_rgb, clean_pred)
+        for source, scores in maps_by_source.items():
+            probs_for_entropy = normalize_importance(scores.flatten(), 1.0)
+            map_entropies[source] = float((-(probs_for_entropy * torch.log(probs_for_entropy + 1e-12))).sum().item())
         print(f"[{image_num}/{len(image_items)}] index={image_index} true={true_label} pred={clean_pred}")
         for seed in args.seeds:
             for arm in arms:
                 arm_seed = int(seed) * 1000003 + int(image_index or image_num) * 9176 + stable_int_hash(arm.name) % 9973
                 probs, location_source, temperature, greybox_probe_queries = build_probs_for_arm(
-                    arm, map_scores, x_rgb.shape[-1] * x_rgb.shape[-2], arm_seed, device
+                    arm, maps_by_source, x_rgb.shape[-1] * x_rgb.shape[-2], arm_seed, device
                 )
                 result = run_l0_sparse_rs(
                     model=model,
@@ -501,12 +546,13 @@ def main() -> None:
                     "seed": seed,
                     "arm": arm.name,
                     "sampler": arm.sampler,
+                    "map_source": "" if arm.map_source is None else arm.map_source,
                     "temperature": "" if temperature is None else temperature,
                     "eps_pixels": args.eps_pixels,
                     "queries": args.queries,
                     "greybox_probe_queries": greybox_probe_queries,
                     "location_source": location_source,
-                    "map_entropy": map_entropy,
+                    "map_entropy": "" if arm.map_source is None else map_entropies.get(arm.map_source, ""),
                     "patch_position_y": "",
                     "patch_position_x": "",
                     "patch_position_h": "",
@@ -539,8 +585,9 @@ def main() -> None:
         "eps_pixels": args.eps_pixels,
         "seeds": args.seeds,
         "temperatures": args.temperatures,
+        "map_sources": args.map_sources,
         "arms": [arm.__dict__ for arm in arms],
-        "threat_model_note": "map_true and map_shuffle are grey-box arms with one B-cos explanation probe; effective_first_success_query adds greybox_probe_queries.",
+        "threat_model_note": "bcos/gradcam true and shuffle arms are grey-box arms with one explanation probe; effective_first_success_query adds greybox_probe_queries.",
     }
     (result_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     zip_path = args.zip_path or result_dir.with_suffix(".zip")

@@ -15,14 +15,21 @@ COMPETITION_SOURCES = ["arc-prize-2026-arc-agi-3"]
 MACHINE_SHAPE = "NvidiaRtxPro6000"
 
 
-def default_arms(temperatures: list[str]) -> list[str]:
+def default_arms(temperatures: list[str], map_sources: list[str]) -> list[str]:
     arms = ["uniform"]
-    for value in temperatures:
-        if str(value).strip().lower() in {"inf", "infinity", "uniform"}:
-            continue
-        temp_slug = str(float(value)).replace(".", "p")
-        arms.append(f"map_shuffle_tau_{temp_slug}")
-        arms.append(f"map_true_tau_{temp_slug}")
+    for source in map_sources:
+        for value in temperatures:
+            if str(value).strip().lower() in {"inf", "infinity", "uniform"}:
+                continue
+            temp_slug = str(float(value)).replace(".", "p")
+            if source == "bcos":
+                arms.append(f"map_shuffle_tau_{temp_slug}")
+                arms.append(f"map_true_tau_{temp_slug}")
+            elif source == "gradcam":
+                arms.append(f"gradcam_shuffle_tau_{temp_slug}")
+                arms.append(f"gradcam_true_tau_{temp_slug}")
+            else:
+                raise ValueError(f"Unsupported map source: {source}")
     return arms
 
 
@@ -65,6 +72,7 @@ def build_job(args: argparse.Namespace, *, arm: str, image_offset: int, limit_im
             "device": "cuda",
             "seeds": args.seeds,
             "temperatures": args.temperatures,
+            "map_sources": args.map_sources,
             "arms": [arm],
             "p_init": args.p_init,
             "rescale_schedule": True,
@@ -85,6 +93,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--images-csv", default="data/used_images_1000.csv")
     parser.add_argument("--seeds", nargs="+", type=int, default=[0])
     parser.add_argument("--temperatures", nargs="+", default=["4", "1", "0.25"])
+    parser.add_argument("--map-sources", nargs="+", choices=["bcos", "gradcam"], default=["bcos"])
     parser.add_argument("--arms", nargs="+", default=None)
     parser.add_argument("--p-init", type=float, default=0.8)
     parser.add_argument("--timeout-minutes", type=int, default=720)
@@ -94,7 +103,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    arms = args.arms or default_arms(args.temperatures)
+    arms = args.arms or default_arms(args.temperatures, args.map_sources)
     jobs = []
     for arm in arms:
         for image_offset in range(0, args.limit_images, args.chunk_size):

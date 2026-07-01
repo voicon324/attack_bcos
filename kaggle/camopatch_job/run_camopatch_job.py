@@ -447,6 +447,9 @@ def main() -> None:
         if "temperatures" in config:
             cmd.append("--temperatures")
             cmd.extend(str(temperature) for temperature in config["temperatures"])
+        if "map_sources" in config:
+            cmd.append("--map-sources")
+            cmd.extend(str(source) for source in config["map_sources"])
         if "arms" in config:
             cmd.append("--arms")
             cmd.extend(str(arm) for arm in config["arms"])
