@@ -33,9 +33,9 @@ from sparse_attack import configure_fast_runtime, load_image_paths_from_csv, may
 
 
 MODEL_ALIASES = {
-    "resnet18": "resnet_18",
-    "resnet50": "resnet_50",
-    "densenet121": "densenet_121",
+    "resnet18": "resnet18",
+    "resnet50": "resnet50",
+    "densenet121": "densenet121",
     "convnext_tiny": "convnext_tiny",
     "convnext_base": "convnext_base",
     "vitc_s": "vitc_s",
@@ -320,6 +320,16 @@ def arm_list(temperatures: list[float | None]) -> list[Arm]:
     return arms
 
 
+def filter_arms(arms: list[Arm], requested: list[str] | None) -> list[Arm]:
+    if not requested:
+        return arms
+    by_name = {arm.name: arm for arm in arms}
+    missing = [name for name in requested if name not in by_name]
+    if missing:
+        raise ValueError(f"Unknown arms: {missing}. Available arms: {sorted(by_name)}")
+    return [by_name[name] for name in requested]
+
+
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames: list[str] = []
@@ -406,8 +416,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--queries", type=int, default=1000)
     parser.add_argument("--eps-pixels", type=int, default=64)
     parser.add_argument("--limit-images", type=int, default=100)
+    parser.add_argument("--image-offset", type=int, default=0)
     parser.add_argument("--seeds", nargs="+", type=int, default=[0])
     parser.add_argument("--temperatures", nargs="+", default=["4", "1", "0.25"])
+    parser.add_argument("--arms", nargs="+", default=None)
     parser.add_argument("--p-init", type=float, default=0.8)
     parser.add_argument("--constant-schedule", action="store_true")
     parser.add_argument("--no-rescale-schedule", action="store_true")
@@ -435,13 +447,16 @@ def main() -> None:
         model = model.to(memory_format=torch.channels_last)
 
     temperatures = [parse_temperature(value) for value in args.temperatures]
-    arms = arm_list(temperatures)
+    arms = filter_arms(arm_list(temperatures), args.arms)
     image_items = load_image_paths_from_csv(Path(args.images_csv))
+    if args.image_offset > 0:
+        image_items = image_items[args.image_offset :]
     if args.limit_images > 0:
         image_items = image_items[: args.limit_images]
 
     rows: list[dict[str, Any]] = []
     print(f"model={args.model} images={len(image_items)} queries={args.queries} eps_pixels={args.eps_pixels}")
+    print(f"image_offset={args.image_offset} limit_images={args.limit_images}")
     print("arms=" + ",".join(arm.name for arm in arms))
     for image_num, (image_index, image_path) in enumerate(image_items, start=1):
         x_rgb, resolved_path = load_rgb_image(image_path, device=device)
@@ -519,6 +534,7 @@ def main() -> None:
         "elapsed_sec": round(time.time() - started, 3),
         "model": args.model,
         "images": len(image_items),
+        "image_offset": args.image_offset,
         "queries": args.queries,
         "eps_pixels": args.eps_pixels,
         "seeds": args.seeds,

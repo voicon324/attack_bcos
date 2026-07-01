@@ -439,12 +439,17 @@ def main() -> None:
             "--limit-images",
             str(int(config.get("limit_images", 100))),
         ]
+        if "image_offset" in config:
+            cmd.extend(["--image-offset", str(int(config["image_offset"]))])
         if "seeds" in config:
             cmd.append("--seeds")
             cmd.extend(str(seed) for seed in config["seeds"])
         if "temperatures" in config:
             cmd.append("--temperatures")
             cmd.extend(str(temperature) for temperature in config["temperatures"])
+        if "arms" in config:
+            cmd.append("--arms")
+            cmd.extend(str(arm) for arm in config["arms"])
         for config_key, flag in (
             ("p_init", "--p-init"),
         ):
