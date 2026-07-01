@@ -213,6 +213,10 @@ def attack_key_for(config: dict) -> str:
         "adversarialpatch": "adversarial_patch",
         "adversarial-patch-attack": "adversarial_patch",
         "apa": "adversarial_patch",
+        "sparse-rs-map-l0": "sparse_rs_map_l0",
+        "sparse_rs_map_l0": "sparse_rs_map_l0",
+        "sparse-map-l0": "sparse_rs_map_l0",
+        "map-l0": "sparse_rs_map_l0",
     }
     try:
         return mapping[attack]
@@ -245,6 +249,8 @@ def attack_script_for(repo: Path, config: dict) -> Path:
         script = repo / "LaVAN" / "ConLaVANBatch.py"
     elif attack == "adversarial_patch":
         script = repo / "AdversarialPatch" / "ConAdversarialPatchBatch.py"
+    elif attack == "sparse_rs_map_l0":
+        script = repo / "attacks" / "sparse_rs_map_position_experiment.py"
     else:
         raise AssertionError(f"Unhandled attack key: {attack}")
     if not script.is_file():
@@ -413,31 +419,68 @@ def main() -> None:
     env["PYTHONUNBUFFERED"] = "1"
 
     attack = attack_key_for(config)
-    cmd = [
-        sys.executable,
-        "-u",
-        str(attack_script_for(repo, config)),
-        "--images-csv",
-        str(images_csv),
-        "--save-root",
-        str(result_dir),
-        "--model",
-        str(config["model"]),
-        "--model_source",
-        "bcos",
-        "--device",
-        str(config.get("device", "cuda")),
-        "--image-batch-size",
-        str(config.get("image_batch_size", 1000)),
-        "--queries",
-        str(config["queries"]),
-        "--linf",
-        str(config["linf"]),
-        "--s",
-        str(config["patch_size"]),
-        "--position-rule",
-        position_rule_for(config),
-    ]
+    if attack == "sparse_rs_map_l0":
+        cmd = [
+            sys.executable,
+            "-u",
+            str(attack_script_for(repo, config)),
+            "--images-csv",
+            str(images_csv),
+            "--save-root",
+            str(result_dir),
+            "--model",
+            str(config["model"]),
+            "--device",
+            str(config.get("device", "cuda")),
+            "--queries",
+            str(config["queries"]),
+            "--eps-pixels",
+            str(config.get("eps_pixels", config.get("eps", 64))),
+            "--limit-images",
+            str(int(config.get("limit_images", 100))),
+        ]
+        if "seeds" in config:
+            cmd.append("--seeds")
+            cmd.extend(str(seed) for seed in config["seeds"])
+        if "temperatures" in config:
+            cmd.append("--temperatures")
+            cmd.extend(str(temperature) for temperature in config["temperatures"])
+        for config_key, flag in (
+            ("p_init", "--p-init"),
+        ):
+            if config_key in config:
+                cmd.extend([flag, str(config[config_key])])
+        if bool(config.get("constant_schedule", False)):
+            cmd.append("--constant-schedule")
+        if not bool(config.get("rescale_schedule", True)):
+            cmd.append("--no-rescale-schedule")
+        cmd.extend(["--zip-path", str(zip_path), "--run-log", str(run_log)])
+    else:
+        cmd = [
+            sys.executable,
+            "-u",
+            str(attack_script_for(repo, config)),
+            "--images-csv",
+            str(images_csv),
+            "--save-root",
+            str(result_dir),
+            "--model",
+            str(config["model"]),
+            "--model_source",
+            "bcos",
+            "--device",
+            str(config.get("device", "cuda")),
+            "--image-batch-size",
+            str(config.get("image_batch_size", 1000)),
+            "--queries",
+            str(config["queries"]),
+            "--linf",
+            str(config["linf"]),
+            "--s",
+            str(config["patch_size"]),
+            "--position-rule",
+            position_rule_for(config),
+        ]
     if attack == "camopatch":
         for config_key, flag in (
             ("N", "--N"),
@@ -488,13 +531,13 @@ def main() -> None:
         ):
             if config_key in config:
                 cmd.extend([flag, str(config[config_key])])
-    if bool(config.get("fixed_position", True)):
+    if attack != "sparse_rs_map_l0" and bool(config.get("fixed_position", True)):
         cmd.append("--fixed-position")
-    if not bool(config.get("save_images", False)):
+    if attack != "sparse_rs_map_l0" and not bool(config.get("save_images", False)):
         cmd.append("--no_save_images")
-    if "seed" in config:
+    if attack != "sparse_rs_map_l0" and "seed" in config:
         cmd.extend(["--seed", str(config["seed"])])
-    if int(config.get("limit_images", 0) or 0) > 0:
+    if attack != "sparse_rs_map_l0" and int(config.get("limit_images", 0) or 0) > 0:
         cmd.extend(["--limit-images", str(int(config["limit_images"]))])
 
     manifest = {

@@ -1,0 +1,53 @@
+{
+  "jobs": [
+    {
+      "job_id": "sparse-map-l0-resnet50-eps64-q1000-n100-t4-1-0p25-seed0",
+      "title": "Sparse-RS L0 map ablation resnet50 eps 64 q1000 n100",
+      "template_dir": "kaggle/camopatch_job_template",
+      "code_file": "run_kernel.py",
+      "kernel_type": "script",
+      "language": "python",
+      "enable_gpu": true,
+      "enable_internet": false,
+      "machine_shape": "NvidiaRtxPro6000",
+      "is_private": true,
+      "dataset_sources": [
+        "hkhnhduy/attack-bcos-github",
+        "hkhnhduy/weights-bcos",
+        "sautkin/imagenet1kvalid"
+      ],
+      "competition_sources": [
+        "arc-prize-2026-arc-agi-3"
+      ],
+      "output_pattern": ".*(zip|log|json|csv)$",
+      "expected_zip": "sparse-map-l0-resnet50-eps64-q1000-n100-t4-1-0p25-seed0_result.zip",
+      "timeout_minutes": 720,
+      "job_config": {
+        "job_id": "sparse-map-l0-resnet50-eps64-q1000-n100-t4-1-0p25-seed0",
+        "attack": "sparse_rs_map_l0",
+        "model_family": "bcos",
+        "model": "resnet50",
+        "patch_size": 0,
+        "linf": "L0/64",
+        "position": "map_ablation",
+        "queries": 1000,
+        "eps_pixels": 64,
+        "limit_images": 100,
+        "images_csv": "data/used_images_1000.csv",
+        "device": "cuda",
+        "seeds": [
+          0
+        ],
+        "temperatures": [
+          "4",
+          "1",
+          "0.25"
+        ],
+        "p_init": 0.8,
+        "rescale_schedule": true,
+        "code_dataset_owner": "hkhnhduy",
+        "code_dataset_slug": "attack-bcos-github"
+      }
+    }
+  ]
+}
